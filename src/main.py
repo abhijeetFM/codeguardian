@@ -4,7 +4,7 @@ from parser.ts_parser import parse_typescript
 
 from discovery.finder import discover_files
 
-from extractor.class_extractor import walk_tree
+from extractor.class_extractor import extract_classes
 
 
 project = Path("samples")
@@ -24,7 +24,15 @@ print("Parsing Successful!")
 
 
 
-walk_tree(tree.root_node)
+
+
+classes = []
+extract_classes(tree.root_node, classes)
+
+print("\nClasses Found:")
+
+for class_name in classes:
+    print(f"- {class_name}")
 
 
 
