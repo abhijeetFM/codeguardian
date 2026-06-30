@@ -1,0 +1,26 @@
+{
+    "max_file_lines": 300,
+
+    "max_function_lines": 50,
+
+    "ignored_directories": [
+        "venv",
+        ".git",
+        "__pycache__",
+        ".pytest_cache"
+    ],
+
+    "forbidden_dependencies": [
+        [
+            "controllers",
+            "repositories"
+        ]
+    ],
+
+    "architecture_score": {
+        "file_penalty": 10,
+        "function_penalty": 5,
+        "architecture_penalty": 20,
+        "circular_dependency_penalty": 30
+    }
+}

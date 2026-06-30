@@ -1,3 +1,10 @@
+class CircularViolation:
+
+    def __init__(self, cycle):
+
+        self.cycle = cycle
+
+
 class CircularDependencyAnalyzer:
 
     def __init__(self):
@@ -5,6 +12,8 @@ class CircularDependencyAnalyzer:
         self.graph = {}
 
     def build_graph(self, dependencies):
+
+        self.graph = {}
 
         for dep in dependencies:
 
@@ -20,30 +29,50 @@ class CircularDependencyAnalyzer:
         self,
         node,
         visited,
-        rec_stack
+        rec_stack,
+        path,
+        cycles
     ):
 
         visited.add(node)
         rec_stack.add(node)
+        path.append(node)
 
         for neighbor in self.graph.get(node, []):
 
             if neighbor not in visited:
 
-                if self.dfs(
+                self.dfs(
                     neighbor,
                     visited,
-                    rec_stack
-                ):
-                    return True
+                    rec_stack,
+                    path,
+                    cycles
+                )
 
             elif neighbor in rec_stack:
 
-                return True
+                cycle_start = path.index(
+                    neighbor
+                )
 
+                cycle = (
+                    path[cycle_start:]
+                    + [neighbor]
+                )
+
+                cycle_tuple = tuple(cycle)
+
+                if cycle_tuple not in {
+
+                    tuple(c)
+
+                    for c in cycles
+                }:
+
+                    cycles.append(cycle)
         rec_stack.remove(node)
-
-        return False
+        path.pop()
 
     def detect(self, dependencies):
 
@@ -51,16 +80,21 @@ class CircularDependencyAnalyzer:
 
         visited = set()
         rec_stack = set()
+        cycles = []
 
         for node in self.graph:
 
             if node not in visited:
 
-                if self.dfs(
+                self.dfs(
                     node,
                     visited,
-                    rec_stack
-                ):
-                    return True
+                    rec_stack,
+                    [],
+                    cycles
+                )
 
-        return False
+        return [
+            CircularViolation(cycle)
+            for cycle in cycles
+        ]

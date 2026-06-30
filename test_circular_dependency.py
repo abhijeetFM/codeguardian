@@ -1,47 +1,50 @@
+from analyzers.dependency_analyzer import (
+    DependencyAnalyzer
+)
+
 from analyzers.circular_dependency_analyzer import (
     CircularDependencyAnalyzer
 )
 
 
-class FakeDependency:
-
-    def __init__(
-        self,
-        source_file,
-        target_module
-    ):
-        self.source_file = source_file
-        self.target_module = target_module
-
-
-dependencies = [
-
-    FakeDependency(
-        "UserService",
-        "EmailService"
-    ),
-
-    FakeDependency(
-        "EmailService",
-        "NotificationService"
-    ),
-
-    FakeDependency(
-        "NotificationService",
-        "DatabaseService"
+dependencies = (
+    DependencyAnalyzer()
+    .analyze_project(
+        "sample_project"
     )
-]
-
-
-analyzer = CircularDependencyAnalyzer()
-
-has_cycle = analyzer.detect(
-    dependencies
 )
 
+print("\nDependencies Found:\n")
 
-if has_cycle:
-    print("❌ Circular dependency detected!")
+for dep in dependencies:
+
+    print(
+        dep.source_file,
+        "->",
+        dep.target_module
+    )
+
+cycles = (
+    CircularDependencyAnalyzer()
+    .detect(dependencies)
+)
+
+if cycles:
+
+    print(
+        "\nCircular Dependencies Found:\n"
+    )
+
+    for cycle in cycles:
+
+        print(
+            " -> ".join(
+                cycle.cycle
+            )
+        )
 
 else:
-    print("✅ No circular dependencies found.")
+
+    print(
+        "No circular dependencies found."
+    )

@@ -1,5 +1,5 @@
-from rules.architecture_rules import (
-    ALLOWED_DEPENDENCIES
+from config.config_loader import (
+    ConfigLoader
 )
 
 
@@ -11,6 +11,7 @@ class ArchitectureViolation:
         source_layer,
         target_layer
     ):
+
         self.source_file = source_file
         self.source_layer = source_layer
         self.target_layer = target_layer
@@ -18,20 +19,30 @@ class ArchitectureViolation:
 
 class ArchitectureValidator:
 
-    def get_layer(self, value):
+    def __init__(self):
 
-        if "controllers" in value:
-            return "controllers"
+        config = ConfigLoader.load()
 
-        if "services" in value:
-            return "services"
+        self.forbidden_dependencies = {
 
-        if "repositories" in value:
-            return "repositories"
+            tuple(rule)
 
-        return None
+            for rule in config[
+                "forbidden_dependencies"
+            ]
+        }
 
-    def validate(self, dependencies):
+    def get_layer(
+        self,
+        module_name
+    ):
+
+        return module_name.split(".")[0]
+
+    def validate(
+        self,
+        dependencies
+    ):
 
         violations = []
 
@@ -46,18 +57,9 @@ class ArchitectureValidator:
             )
 
             if (
-                source_layer is None
-                or target_layer is None
-            ):
-                continue
-
-            allowed = (
-                ALLOWED_DEPENDENCIES[
-                    source_layer
-                ]
-            )
-
-            if target_layer not in allowed:
+                source_layer,
+                target_layer
+            ) in self.forbidden_dependencies:
 
                 violations.append(
                     ArchitectureViolation(

@@ -1,5 +1,5 @@
-import typer
 import os
+import typer
 
 from rich.console import Console
 from rich.panel import Panel
@@ -7,17 +7,38 @@ from rich.progress import Progress
 
 from analyzers.file_analyzer import FileAnalyzer
 from analyzers.function_analyzer import FunctionAnalyzer
-from analyzers.dependency_analyzer import DependencyAnalyzer
+from analyzers.dependency_analyzer import (
+    DependencyAnalyzer
+)
+from analyzers.circular_dependency_analyzer import (
+    CircularDependencyAnalyzer
+)
 
-from rules.architecture_validator import ArchitectureValidator
+from rules.architecture_validator import (
+    ArchitectureValidator
+)
 
-from reports.console_reporter import ConsoleReporter
-from reports.architecture_score import ArchitectureScoreCalculator
+from reports.console_reporter import (
+    ConsoleReporter
+)
+from reports.architecture_score import (
+    ArchitectureScoreCalculator
+)
 
 
 app = typer.Typer()
 console = Console()
 
+
+def get_score_color(score):
+
+    if score >= 90:
+        return "green"
+
+    elif score >= 70:
+        return "yellow"
+
+    return "red"
 
 
 def calculate_project_score(path: str):
@@ -41,36 +62,42 @@ def calculate_project_score(path: str):
         .validate(dependencies)
     )
 
+    circular_violations = (
+        CircularDependencyAnalyzer()
+        .detect(dependencies)
+    )
+
     score = (
         ArchitectureScoreCalculator()
         .calculate(
             file_violations,
             function_violations,
-            architecture_violations
+            architecture_violations,
+            circular_violations
         )
     )
 
     return score
 
 
+from config.config_loader import ConfigLoader
 
 
 def count_python_files(path):
 
     count = 0
 
-    IGNORE_DIRS = {
-        "venv",
-        ".git",
-        "__pycache__",
-        ".pytest_cache"
-    }
+    config = ConfigLoader.load()
+
+    ignore_dirs = set(
+        config["ignored_directories"]
+    )
 
     for root, dirs, files in os.walk(path):
 
         dirs[:] = [
             d for d in dirs
-            if d not in IGNORE_DIRS
+            if d not in ignore_dirs
         ]
 
         for file in files:
@@ -79,16 +106,6 @@ def count_python_files(path):
                 count += 1
 
     return count
-
-def get_score_color(score):
-
-    if score >= 90:
-        return "green"
-
-    elif score >= 70:
-        return "yellow"
-
-    return "red"
 
 
 @app.command()
@@ -101,12 +118,6 @@ def scan(path: str = "."):
         )
     )
 
-    # Initialize analyzers
-    file_analyzer = FileAnalyzer()
-    function_analyzer = FunctionAnalyzer()
-    dependency_analyzer = DependencyAnalyzer()
-
-    # Initialize reporter
     reporter = ConsoleReporter()
 
     with Progress() as progress:
@@ -116,13 +127,14 @@ def scan(path: str = "."):
             total=1
         )
 
-        file_violations = file_analyzer.analyze(path)
+        file_violations = (
+            FileAnalyzer().analyze(path)
+        )
 
         progress.update(
             file_task,
             advance=1
         )
-
 
         function_task = progress.add_task(
             "[green]Analyzing functions...",
@@ -130,7 +142,8 @@ def scan(path: str = "."):
         )
 
         function_violations = (
-            function_analyzer.analyze_project(path)
+            FunctionAnalyzer()
+            .analyze_project(path)
         )
 
         progress.update(
@@ -138,21 +151,20 @@ def scan(path: str = "."):
             advance=1
         )
 
-
         dependency_task = progress.add_task(
-            "[yellow]Checking dependencies...",
+            "[yellow]Analyzing dependencies...",
             total=1
         )
 
         dependencies = (
-            dependency_analyzer.analyze_project(path)
+            DependencyAnalyzer()
+            .analyze_project(path)
         )
 
         progress.update(
             dependency_task,
             advance=1
         )
-
 
         architecture_task = progress.add_task(
             "[red]Validating architecture...",
@@ -169,9 +181,23 @@ def scan(path: str = "."):
             advance=1
         )
 
+        circular_task = progress.add_task(
+            "[magenta]Checking circular dependencies...",
+            total=1
+        )
+
+        circular_violations = (
+            CircularDependencyAnalyzer()
+            .detect(dependencies)
+        )
+
+        progress.update(
+            circular_task,
+            advance=1
+        )
 
         score_task = progress.add_task(
-            "[magenta]Calculating score...",
+            "[blue]Calculating score...",
             total=1
         )
 
@@ -180,7 +206,8 @@ def scan(path: str = "."):
             .calculate(
                 file_violations,
                 function_violations,
-                architecture_violations
+                architecture_violations,
+                circular_violations
             )
         )
 
@@ -189,50 +216,61 @@ def scan(path: str = "."):
             advance=1
         )
 
-    # Calculate architecture score
-    score = (
-        ArchitectureScoreCalculator()
-        .calculate(
-            file_violations,
-            function_violations,
-            architecture_violations
-        )
-    )
-
-    # Report file violations
+    # File violations
     if file_violations:
+
         reporter.show_file_violations(
             file_violations
         )
+
     else:
+
         console.print(
             "[green]✓ No oversized files found[/green]"
         )
 
-    # Report function violations
+    # Function violations
     if function_violations:
+
         reporter.show_function_violations(
             function_violations
         )
+
     else:
+
         console.print(
             "[green]✓ No oversized functions found[/green]"
         )
 
-    # Report architecture violations
+    # Architecture violations
     if architecture_violations:
+
         reporter.show_architecture_violations(
             architecture_violations
         )
+
     else:
+
         console.print(
             "[green]✓ No architecture violations found[/green]"
         )
 
-    # Show architecture score
-    console.print()
+    # Circular dependencies
+    if circular_violations:
+
+        reporter.show_circular_dependencies(
+            circular_violations
+        )
+
+    else:
+
+        console.print(
+            "[green]✓ No circular dependencies found[/green]"
+        )
 
     score_color = get_score_color(score)
+
+    console.print()
 
     console.print(
         Panel.fit(
@@ -243,39 +281,44 @@ def scan(path: str = "."):
         )
     )
 
+
 @app.command()
 def score(path: str = "."):
 
     score_value = calculate_project_score(path)
 
-    score_color = get_score_color(score_value)
+    score_color = get_score_color(
+        score_value
+    )
 
     console.print(
         Panel.fit(
             f"[bold {score_color}]"
-            f"Architecture Score: {score_value}/100"
+            f"Architecture Score: "
+            f"{score_value}/100"
             f"[/bold {score_color}]",
             title="Code Health"
         )
     )
+
 
 @app.command()
 def report(path: str = "."):
 
     reporter = ConsoleReporter()
 
-    file_analyzer = FileAnalyzer()
-    function_analyzer = FunctionAnalyzer()
-    dependency_analyzer = DependencyAnalyzer()
-
-    file_violations = file_analyzer.analyze(path)
+    file_violations = (
+        FileAnalyzer().analyze(path)
+    )
 
     function_violations = (
-        function_analyzer.analyze_project(path)
+        FunctionAnalyzer()
+        .analyze_project(path)
     )
 
     dependencies = (
-        dependency_analyzer.analyze_project(path)
+        DependencyAnalyzer()
+        .analyze_project(path)
     )
 
     architecture_violations = (
@@ -283,12 +326,18 @@ def report(path: str = "."):
         .validate(dependencies)
     )
 
+    circular_violations = (
+        CircularDependencyAnalyzer()
+        .detect(dependencies)
+    )
+
     score = (
         ArchitectureScoreCalculator()
         .calculate(
             file_violations,
             function_violations,
-            architecture_violations
+            architecture_violations,
+            circular_violations
         )
     )
 
@@ -299,5 +348,6 @@ def report(path: str = "."):
         file_violations,
         function_violations,
         architecture_violations,
+        circular_violations,
         score
     )
