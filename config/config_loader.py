@@ -24,6 +24,8 @@ class ConfigLoader:
             ]
         ],
 
+        "enable_circular_dependency_check": True,
+
         "architecture_score": {
 
             "file_penalty": 10,

@@ -1,7 +1,15 @@
-class Severity:
+def get_severity(
+    value,
+    warning_threshold,
+    critical_threshold
+):
 
-    INFO = "INFO"
+    if value >= critical_threshold:
 
-    WARNING = "WARNING"
+        return "🔴 CRITICAL"
 
-    CRITICAL = "CRITICAL"
+    elif value >= warning_threshold:
+
+        return "🟡 WARNING"
+
+    return "🟢 OK"

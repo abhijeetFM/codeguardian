@@ -17,6 +17,8 @@
         ]
     ],
 
+    "enable_circular_dependency_check": true,
+
     "architecture_score": {
         "file_penalty": 10,
         "function_penalty": 5,

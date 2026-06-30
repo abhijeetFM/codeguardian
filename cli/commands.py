@@ -62,10 +62,18 @@ def calculate_project_score(path: str):
         .validate(dependencies)
     )
 
-    circular_violations = (
-        CircularDependencyAnalyzer()
-        .detect(dependencies)
-    )
+    config = ConfigLoader.load()
+
+    if config["enable_circular_dependency_check"]:
+
+        circular_violations = (
+            CircularDependencyAnalyzer()
+            .detect(dependencies)
+        )
+
+    else:
+
+        circular_violations = []
 
     score = (
         ArchitectureScoreCalculator()
