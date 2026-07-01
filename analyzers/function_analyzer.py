@@ -3,6 +3,12 @@ import os
 
 from config.config_loader import ConfigLoader
 
+from src.parser.ts_parser import (
+    parse_typescript
+)
+
+from src.tree.Walker import walk
+
 
 class FunctionViolation:
 
@@ -23,9 +29,9 @@ class FunctionAnalyzer:
         max_lines=None
     ):
 
-        if max_lines is None:
+        config = ConfigLoader.load()
 
-            config = ConfigLoader.load()
+        if max_lines is None:
 
             max_lines = config[
                 "max_function_lines"
@@ -33,7 +39,13 @@ class FunctionAnalyzer:
 
         self.max_lines = max_lines
 
-    def analyze_file(
+        self.supported_extensions = set(
+            config[
+                "supported_extensions"
+            ]
+        )
+
+    def analyze_python_file(
         self,
         file_path
     ):
@@ -57,20 +69,81 @@ class FunctionAnalyzer:
                 ast.FunctionDef
             ):
 
-                length = (
+                line_count = (
                     node.end_lineno
                     - node.lineno
                     + 1
                 )
 
-                if length > self.max_lines:
+                if line_count > self.max_lines:
 
                     violations.append(
+
                         FunctionViolation(
                             node.name,
-                            length
+                            line_count
                         )
                     )
+
+        return violations
+
+    def analyze_ts_js_file(
+        self,
+        file_path
+    ):
+
+        violations = []
+
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            source = file.read()
+
+        tree = parse_typescript(
+            source
+        )
+
+        def visit(node):
+
+            if node.type != "function_declaration":
+
+                return
+
+            name_node = node.child_by_field_name(
+                "name"
+            )
+
+            if not name_node:
+
+                return
+
+            function_name = (
+                name_node.text.decode("utf8")
+            )
+
+            line_count = (
+                node.end_point[0]
+                - node.start_point[0]
+                + 1
+            )
+
+            if line_count > self.max_lines:
+
+                violations.append(
+
+                    FunctionViolation(
+                        function_name,
+                        line_count
+                    )
+                )
+
+        walk(
+            tree.root_node,
+            visit
+        )
 
         return violations
 
@@ -92,13 +165,23 @@ class FunctionAnalyzer:
         for root, dirs, files in os.walk(project_path):
 
             dirs[:] = [
+
                 d for d in dirs
+
                 if d not in ignore_dirs
             ]
 
             for file in files:
 
-                if not file.endswith(".py"):
+                extension = os.path.splitext(
+                    file
+                )[1]
+
+                if (
+                    extension
+                    not in self.supported_extensions
+                ):
+
                     continue
 
                 file_path = os.path.join(
@@ -106,10 +189,26 @@ class FunctionAnalyzer:
                     file
                 )
 
-                violations.extend(
-                    self.analyze_file(
-                        file_path
+                if extension == ".py":
+
+                    violations.extend(
+
+                        self.analyze_python_file(
+                            file_path
+                        )
                     )
-                )
+
+                elif extension in {
+
+                    ".ts",
+                    ".js"
+                }:
+
+                    violations.extend(
+
+                        self.analyze_ts_js_file(
+                            file_path
+                        )
+                    )
 
         return violations

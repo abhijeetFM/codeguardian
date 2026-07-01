@@ -9,6 +9,11 @@ class ConfigLoader:
         "max_file_lines": 300,
 
         "max_function_lines": 50,
+        "supported_extensions": [
+            ".py",
+            ".ts",
+            ".js"
+        ],
 
         "ignored_directories": [
             "venv",
