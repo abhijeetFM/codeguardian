@@ -215,3 +215,43 @@ class ConsoleReporter:
         )
 
         self.console.print(table)
+
+    def show_source_analysis(
+        self,
+        analysis
+    ):
+
+        from rich.table import Table
+
+        table = Table(
+            title="Source Code Analysis"
+        )
+
+        table.add_column(
+            "File",
+            style="cyan"
+        )
+
+        table.add_column(
+            "Classes",
+            style="green"
+        )
+
+        table.add_column(
+            "Functions",
+            style="yellow"
+        )
+
+        for result in analysis:
+
+            table.add_row(
+                result["file"],
+                ", ".join(
+                    result["classes"]
+                ) or "-",
+                ", ".join(
+                    result["functions"]
+                ) or "-"
+            )
+
+        self.console.print(table)

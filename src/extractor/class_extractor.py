@@ -1,6 +1,6 @@
 from tree_sitter import Node
 
-from tree.Walker import walk
+from src.tree.Walker import walk
 
 
 

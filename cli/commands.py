@@ -13,6 +13,9 @@ from analyzers.dependency_analyzer import (
 from analyzers.circular_dependency_analyzer import (
     CircularDependencyAnalyzer
 )
+from analyzers.source_code_analyzer import (
+    SourceCodeAnalyzer
+)
 
 from rules.architecture_validator import (
     ArchitectureValidator
@@ -21,6 +24,11 @@ from rules.architecture_validator import (
 from reports.console_reporter import (
     ConsoleReporter
 )
+
+from reports.json_reporter import (
+    JsonReporter
+)
+
 from reports.architecture_score import (
     ArchitectureScoreCalculator
 )
@@ -43,18 +51,18 @@ def get_score_color(score):
 
 def calculate_project_score(path: str):
 
-    file_analyzer = FileAnalyzer()
-    function_analyzer = FunctionAnalyzer()
-    dependency_analyzer = DependencyAnalyzer()
-
-    file_violations = file_analyzer.analyze(path)
+    file_violations = (
+        FileAnalyzer().analyze(path)
+    )
 
     function_violations = (
-        function_analyzer.analyze_project(path)
+        FunctionAnalyzer()
+        .analyze_project(path)
     )
 
     dependencies = (
-        dependency_analyzer.analyze_project(path)
+        DependencyAnalyzer()
+        .analyze_project(path)
     )
 
     architecture_violations = (
@@ -62,20 +70,12 @@ def calculate_project_score(path: str):
         .validate(dependencies)
     )
 
-    config = ConfigLoader.load()
+    circular_violations = (
+        CircularDependencyAnalyzer()
+        .detect(dependencies)
+    )
 
-    if config["enable_circular_dependency_check"]:
-
-        circular_violations = (
-            CircularDependencyAnalyzer()
-            .detect(dependencies)
-        )
-
-    else:
-
-        circular_violations = []
-
-    score = (
+    return (
         ArchitectureScoreCalculator()
         .calculate(
             file_violations,
@@ -85,21 +85,17 @@ def calculate_project_score(path: str):
         )
     )
 
-    return score
-
-
-from config.config_loader import ConfigLoader
-
 
 def count_python_files(path):
 
     count = 0
 
-    config = ConfigLoader.load()
-
-    ignore_dirs = set(
-        config["ignored_directories"]
-    )
+    ignore_dirs = {
+        "venv",
+        ".git",
+        "__pycache__",
+        ".pytest_cache"
+    }
 
     for root, dirs, files in os.walk(path):
 
@@ -111,24 +107,40 @@ def count_python_files(path):
         for file in files:
 
             if file.endswith(".py"):
+
                 count += 1
 
     return count
 
 
 @app.command()
-def scan(path: str = "."):
+def scan(
 
-    console.print(
-        Panel.fit(
-            f"Scanning project: [bold cyan]{path}[/bold cyan]",
-            title="CodeGuardian"
-        )
+    path: str = ".",
+
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        "-j",
+        help="Export results as JSON"
     )
+):
+
+    if not json_output:
+
+        console.print(
+            Panel.fit(
+                f"Scanning project: "
+                f"[bold cyan]{path}[/bold cyan]",
+                title="CodeGuardian"
+            )
+        )
 
     reporter = ConsoleReporter()
 
-    with Progress() as progress:
+    with Progress(
+        disable=json_output
+    ) as progress:
 
         file_task = progress.add_task(
             "[cyan]Analyzing files...",
@@ -136,7 +148,8 @@ def scan(path: str = "."):
         )
 
         file_violations = (
-            FileAnalyzer().analyze(path)
+            FileAnalyzer()
+            .analyze(path)
         )
 
         progress.update(
@@ -204,8 +217,23 @@ def scan(path: str = "."):
             advance=1
         )
 
+        source_task = progress.add_task(
+            "[blue]Analyzing JS/TS files...",
+            total=1
+        )
+
+        source_analysis = (
+            SourceCodeAnalyzer()
+            .analyze(path)
+        )
+
+        progress.update(
+            source_task,
+            advance=1
+        )
+
         score_task = progress.add_task(
-            "[blue]Calculating score...",
+            "[white]Calculating score...",
             total=1
         )
 
@@ -224,7 +252,24 @@ def scan(path: str = "."):
             advance=1
         )
 
-    # File violations
+    if json_output:
+
+        output = (
+            JsonReporter()
+            .generate(
+                file_violations,
+                function_violations,
+                architecture_violations,
+                circular_violations,
+                source_analysis,
+                score
+            )
+        )
+
+        print(output)
+
+        return
+
     if file_violations:
 
         reporter.show_file_violations(
@@ -237,7 +282,6 @@ def scan(path: str = "."):
             "[green]✓ No oversized files found[/green]"
         )
 
-    # Function violations
     if function_violations:
 
         reporter.show_function_violations(
@@ -250,7 +294,6 @@ def scan(path: str = "."):
             "[green]✓ No oversized functions found[/green]"
         )
 
-    # Architecture violations
     if architecture_violations:
 
         reporter.show_architecture_violations(
@@ -263,7 +306,6 @@ def scan(path: str = "."):
             "[green]✓ No architecture violations found[/green]"
         )
 
-    # Circular dependencies
     if circular_violations:
 
         reporter.show_circular_dependencies(
@@ -276,6 +318,12 @@ def scan(path: str = "."):
             "[green]✓ No circular dependencies found[/green]"
         )
 
+    if source_analysis:
+
+        reporter.show_source_analysis(
+            source_analysis
+        )
+
     score_color = get_score_color(score)
 
     console.print()
@@ -283,7 +331,8 @@ def scan(path: str = "."):
     console.print(
         Panel.fit(
             f"[bold {score_color}]"
-            f"Architecture Score: {score}/100"
+            f"Architecture Score: "
+            f"{score}/100"
             f"[/bold {score_color}]",
             title="Health Report"
         )
@@ -293,7 +342,9 @@ def scan(path: str = "."):
 @app.command()
 def score(path: str = "."):
 
-    score_value = calculate_project_score(path)
+    score_value = (
+        calculate_project_score(path)
+    )
 
     score_color = get_score_color(
         score_value

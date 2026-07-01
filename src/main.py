@@ -7,8 +7,7 @@ from discovery.finder import discover_files
 from extractor.class_extractor import ClassExtractor
 
 from extractor.function_extractor import functionExtractor
-
-from tree.Walker import walk
+from src.tree.Walker import walk
 
 
 project = Path("samples")
