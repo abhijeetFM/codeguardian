@@ -32,6 +32,9 @@ from reports.json_reporter import (
 from reports.architecture_score import (
     ArchitectureScoreCalculator
 )
+from reports.html_reporter import (
+    HtmlReporter
+)
 
 
 app = typer.Typer()
@@ -123,10 +126,25 @@ def scan(
         "--json",
         "-j",
         help="Export results as JSON"
+    ),
+
+    html_output: bool = typer.Option(
+        False,
+        "--html",
+        help="Generate HTML report"
+    ),
+
+    score_only: bool = typer.Option(
+        False,
+        "--score",
+        help="Show only architecture score"
     )
 ):
-
-    if not json_output:
+    if not (
+        json_output
+        or html_output
+        or score_only
+    ):
 
         console.print(
             Panel.fit(
@@ -139,7 +157,11 @@ def scan(
     reporter = ConsoleReporter()
 
     with Progress(
-        disable=json_output
+        disable=(
+            json_output
+            or html_output
+            or score_only
+        )
     ) as progress:
 
         file_task = progress.add_task(
@@ -267,6 +289,38 @@ def scan(
         )
 
         print(output)
+
+        return
+    
+    if html_output:
+
+        HtmlReporter().generate(
+            file_violations,
+            function_violations,
+            architecture_violations,
+            circular_violations,
+            source_analysis,
+            score
+        )
+
+        console.print(
+            "[green]✓ report.html generated[/green]"
+        )
+
+        return
+
+
+    if score_only:
+
+        score_color = get_score_color(
+            score
+        )
+
+        console.print(
+            f"[bold {score_color}]"
+            f"{score}/100"
+            f"[/bold {score_color}]"
+        )
 
         return
 
