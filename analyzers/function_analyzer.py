@@ -9,7 +9,13 @@ from src.parser.ts_parser import (
 )
 
 from src.tree.Walker import walk
-
+IGNORE_DIRS = {
+    "venv",
+    ".git",
+    "__pycache__",
+    ".pytest_cache",
+    "node_modules"
+}
 
 class FunctionViolation:
 

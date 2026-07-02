@@ -1,96 +1,170 @@
-from pathlib import Path
+import ast
 
-from config.config_loader import ConfigLoader
+from pathlib import Path
 
 from src.discovery.finder import discover_files
 from src.parser.ts_parser import parse_typescript
 
-from src.extractor.class_extractor import ClassExtractor
+from src.extractor.class_extractor import (
+    ClassExtractor
+)
 
+from src.extractor.function_extractor import (
+    functionExtractor
+)
 
-from src.extractor.function_extractor import functionExtractor
-
-
-from src.extractor.import_extractor import importExtractor
+from src.extractor.import_extractor import (
+    importExtractor
+)
 
 from src.tree.Walker import walk
 
 
 class SourceCodeAnalyzer:
 
-    def analyze(self, path):
+    def analyze_python_file(
+        self,
+        file_path
+    ):
+
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            source = file.read()
+
+        tree = ast.parse(source)
+
+        classes = []
+        functions = []
+
+        for node in ast.walk(tree):
+
+            if isinstance(
+                node,
+                ast.ClassDef
+            ):
+
+                classes.append(
+                    node.name
+                )
+
+            elif isinstance(
+                node,
+                ast.FunctionDef
+            ):
+
+                functions.append(
+                    node.name
+                )
+
+        return {
+
+            "file": str(file_path),
+
+            "classes": classes,
+
+            "functions": functions,
+
+            "imports": []
+        }
+
+    def analyze_ts_js_file(
+        self,
+        file_path
+    ):
+
+        with open(
+            file_path,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            source = file.read()
+
+        tree = parse_typescript(
+            source
+        )
+
+        class_extractor = (
+            ClassExtractor()
+        )
+
+        function_extractor = (
+            functionExtractor()
+        )
+
+        import_extractor = (
+            importExtractor()
+        )
+
+        walk(
+            tree.root_node,
+            class_extractor.visit
+        )
+
+        walk(
+            tree.root_node,
+            function_extractor.visit
+        )
+
+        walk(
+            tree.root_node,
+            import_extractor.visit
+        )
+
+        return {
+
+            "file": str(file_path),
+
+            "classes":
+                class_extractor.classes,
+
+            "functions":
+                function_extractor.function,
+
+            "imports":
+                import_extractor.imports
+        }
+
+    def analyze(
+        self,
+        path
+    ):
 
         results = []
 
-        config = ConfigLoader.load()
-        supported_extensions = set(
-           config["supported_extensions"]
-         )
-
-       
-
         files = discover_files(
+
             Path(path),
-            supported_extensions
+
+            {
+                ".py",
+                ".ts",
+                ".js"
+            }
         )
 
         for file_path in files:
 
-       
+            if file_path.suffix == ".py":
 
-            with open(
-                file_path,
-                "r",
-                encoding="utf-8"
-            ) as file:
+                results.append(
 
-                source = file.read()
+                    self.analyze_python_file(
+                        file_path
+                    )
+                )
 
-            tree = parse_typescript(
-                source
-            )
+            else:
 
-            class_extractor = (
-                ClassExtractor()
-            )
+                results.append(
 
-            function_extractor = (
-                functionExtractor()
-            )
-
-
-            import_extractor =(
-                importExtractor()
-            )
-
-            walk(
-                tree.root_node,
-                class_extractor.visit
-            )
-
-            walk(
-                tree.root_node,
-                function_extractor.visit
-            )
-
-            walk(
-                tree.root_node,
-                import_extractor.visit
-            )
-
-            results.append(
-                {
-                    "file": str(file_path),
-                    "classes":
-                        class_extractor.classes,
-                    "functions":
-                        function_extractor.function,
-                    "imports": import_extractor.imports
-
-
-
-                    
-                }
-            )
+                    self.analyze_ts_js_file(
+                        file_path
+                    )
+                )
 
         return results

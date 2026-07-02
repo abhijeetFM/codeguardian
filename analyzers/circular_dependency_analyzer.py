@@ -1,3 +1,4 @@
+
 class CircularViolation:
 
     def __init__(self, cycle):
