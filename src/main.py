@@ -6,37 +6,48 @@ from discovery.finder import discover_files
 
 from extractor.class_extractor import ClassExtractor
 
+from extractor.import_extractor import importExtractor
+
 from extractor.function_extractor import functionExtractor
-from src.tree.Walker import walk
+from tree.Walker import walk
 
 
-project = Path("samples")
 
-files = discover_files(project)
+project = Path("")
+
+
+files = discover_files(
+    project,
+    {".ts", ".js",}
+)
 
 print("Discovered files:")
 
 for file in files:
     print(file)
+    source = file.read_text(encoding="utf8")  
 
-source = Path("samples/sample.ts").read_text(encoding="utf8")
-
-tree = parse_typescript(source)
-
-print("Parsing Successful!")
-
-extractor = ClassExtractor()
-
-walk(tree.root_node, extractor.visit)
-
-print(extractor.classes)
+    tree = parse_typescript(source)
 
 
-extractor = functionExtractor()
 
-walk(tree.root_node, extractor.visit)
+    extractor = ClassExtractor()
 
-print(extractor.function)
+    walk(tree.root_node, extractor.visit)
+
+    print(extractor.classes)
+
+
+    extractor = functionExtractor()
+
+    walk(tree.root_node, extractor.visit)
+
+    print(extractor.function)
+
+    extractor = importExtractor()
+ 
+    walk(tree.root_node, extractor.visit)
+    print(extractor.imports)
 
 
 

@@ -5,13 +5,13 @@ from config.config_loader import ConfigLoader
 from src.discovery.finder import discover_files
 from src.parser.ts_parser import parse_typescript
 
-from src.extractor.class_extractor import (
-    ClassExtractor
-)
+from src.extractor.class_extractor import ClassExtractor
 
-from src.extractor.function_extractor import (
-    functionExtractor
-)
+
+from src.extractor.function_extractor import functionExtractor
+
+
+from src.extractor.import_extractor import importExtractor
 
 from src.tree.Walker import walk
 
@@ -58,6 +58,11 @@ class SourceCodeAnalyzer:
                 functionExtractor()
             )
 
+
+            import_extractor =(
+                importExtractor()
+            )
+
             walk(
                 tree.root_node,
                 class_extractor.visit
@@ -68,13 +73,23 @@ class SourceCodeAnalyzer:
                 function_extractor.visit
             )
 
+            walk(
+                tree.root_node,
+                import_extractor.visit
+            )
+
             results.append(
                 {
                     "file": str(file_path),
                     "classes":
                         class_extractor.classes,
                     "functions":
-                        function_extractor.function
+                        function_extractor.function,
+                    "imports": import_extractor.imports
+
+
+
+                    
                 }
             )
 
