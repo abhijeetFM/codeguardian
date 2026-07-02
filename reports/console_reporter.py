@@ -218,10 +218,8 @@ class ConsoleReporter:
 
     def show_source_analysis(
         self,
-        analysis
+        source_analysis
     ):
-
-        from rich.table import Table
 
         table = Table(
             title="Source Code Analysis"
@@ -242,16 +240,36 @@ class ConsoleReporter:
             style="yellow"
         )
 
-        for result in analysis:
+        table.add_column(
+            "Imports",
+            style="magenta"
+        )
+
+        for item in source_analysis:
+
+            classes = (
+                ", ".join(item["classes"])
+                if item["classes"]
+                else "-"
+            )
+
+            functions = (
+                ", ".join(item["functions"])
+                if item["functions"]
+                else "-"
+            )
+
+            imports = (
+                "\n".join(item["imports"])
+                if item["imports"]
+                else "-"
+            )
 
             table.add_row(
-                result["file"],
-                ", ".join(
-                    result["classes"]
-                ) or "-",
-                ", ".join(
-                    result["functions"]
-                ) or "-"
+                item["file"],
+                classes,
+                functions,
+                imports
             )
 
         self.console.print(table)

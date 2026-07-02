@@ -10,8 +10,7 @@ IGNORE_DIRS = {
     "dist",
     "build",
     "tests",
-    "sample_project",
-    "samples",
+    
 }
 
 
