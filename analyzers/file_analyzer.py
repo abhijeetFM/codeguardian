@@ -3,6 +3,11 @@ import os
 from config.config_loader import ConfigLoader
 
 
+
+
+from src.discovery.finder import discover_files
+
+
 class FileViolation:
 
     def __init__(
@@ -11,7 +16,7 @@ class FileViolation:
         line_count
     ):
 
-        self.file_path = file_path
+        self.file_path = str(file_path)
         self.line_count = line_count
 
 
@@ -46,43 +51,14 @@ class FileAnalyzer:
 
         violations = []
 
-        config = ConfigLoader.load()
+        files = discover_files(
+            project_path,
+            self.supported_extensions
+)
 
-        ignore_dirs = set(
+        for file_path in files:
 
-            config[
-                "ignored_directories"
-            ]
-        )
-
-        for root, dirs, files in os.walk(project_path):
-
-            dirs[:] = [
-
-                d for d in dirs
-
-                if d not in ignore_dirs
-            ]
-
-            for file in files:
-
-                extension = os.path.splitext(
-                    file
-                )[1]
-
-                if (
-
-                    extension
-                    not in self.supported_extensions
-
-                ):
-
-                    continue
-
-                file_path = os.path.join(
-                    root,
-                    file
-                )
+         
 
                 try:
 
@@ -106,7 +82,7 @@ class FileAnalyzer:
                         violations.append(
 
                             FileViolation(
-                                file_path,
+                                str(file_path),
                                 line_count
                             )
                         )

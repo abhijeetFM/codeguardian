@@ -2,6 +2,7 @@ import ast
 import os
 
 from config.config_loader import ConfigLoader
+from src.discovery.finder import discover_files
 
 from src.parser.ts_parser import (
     parse_typescript
@@ -148,67 +149,38 @@ class FunctionAnalyzer:
         return violations
 
     def analyze_project(
-        self,
-        project_path
-    ):
+      self,
+      project_path 
+      ):
 
-        violations = []
+      violations = []
 
-        config = ConfigLoader.load()
+      files = discover_files(
+        project_path,
+        self.supported_extensions
+     )
 
-        ignore_dirs = set(
-            config[
-                "ignored_directories"
-            ]
-        )
+      for file_path in files:
 
-        for root, dirs, files in os.walk(project_path):
+        extension = file_path.suffix
 
-            dirs[:] = [
+        if extension == ".py":
 
-                d for d in dirs
-
-                if d not in ignore_dirs
-            ]
-
-            for file in files:
-
-                extension = os.path.splitext(
-                    file
-                )[1]
-
-                if (
-                    extension
-                    not in self.supported_extensions
-                ):
-
-                    continue
-
-                file_path = os.path.join(
-                    root,
-                    file
+            violations.extend(
+                self.analyze_python_file(
+                    file_path
                 )
+            )
 
-                if extension == ".py":
+        elif extension in {
+            ".ts",
+            ".js"
+        }:
 
-                    violations.extend(
+            violations.extend(
+                self.analyze_ts_js_file(
+                    file_path
+                )
+            )
 
-                        self.analyze_python_file(
-                            file_path
-                        )
-                    )
-
-                elif extension in {
-
-                    ".ts",
-                    ".js"
-                }:
-
-                    violations.extend(
-
-                        self.analyze_ts_js_file(
-                            file_path
-                        )
-                    )
-
-        return violations
+      return violations

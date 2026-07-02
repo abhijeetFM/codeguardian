@@ -23,22 +23,20 @@ class SourceCodeAnalyzer:
         results = []
 
         config = ConfigLoader.load()
+        supported_extensions = set(
+           config["supported_extensions"]
+         )
 
-        ignored = set(
-            config["ignored_directories"]
-        )
+       
 
         files = discover_files(
-            Path(path)
+            Path(path),
+            supported_extensions
         )
 
         for file_path in files:
 
-            if any(
-                part in ignored
-                for part in file_path.parts
-            ):
-                continue
+       
 
             with open(
                 file_path,
