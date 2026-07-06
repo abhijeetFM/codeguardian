@@ -17,6 +17,12 @@ from src.extractor.import_extractor import (
     importExtractor
 )
 
+from src.extractor.python_function_extractor import (PythonFunctionExtractor)
+
+from src.extractor.python_class_extractor import ( PythonClassExtractor)
+
+from src.extractor.python_imports_extractor import ( PythonImportExtractor)
+
 from src.tree.Walker import walk
 
 
@@ -37,38 +43,25 @@ class SourceCodeAnalyzer:
 
         tree = ast.parse(source)
 
-        classes = []
-        functions = []
+        class_extractor = ( PythonClassExtractor())
 
-        for node in ast.walk(tree):
+        class_extractor.extract(tree)
 
-            if isinstance(
-                node,
-                ast.ClassDef
-            ):
+        function_extractor =(PythonFunctionExtractor())
+        function_extractor.extract(tree)
 
-                classes.append(
-                    node.name
-                )
-
-            elif isinstance(
-                node,
-                ast.FunctionDef
-            ):
-
-                functions.append(
-                    node.name
-                )
+        import_extractor =(PythonImportExtractor())
+        import_extractor.extract(tree)
 
         return {
 
             "file": str(file_path),
 
-            "classes": classes,
+            "classes": class_extractor.classes,
 
-            "functions": functions,
+            "functions": function_extractor.functions,
 
-            "imports": []
+            "imports": import_extractor.imports
         }
 
     def analyze_ts_js_file(
