@@ -36,6 +36,10 @@ from reports.html_reporter import (
     HtmlReporter
 )
 
+from analyzers.db_access_analyzer import (
+    DBAccessAnalyzer
+)
+
 
 app = typer.Typer()
 console = Console()
@@ -67,6 +71,8 @@ def calculate_project_score(path: str):
         DependencyAnalyzer()
         .analyze_project(path)
     )
+
+    
 
     architecture_violations = (
         ArchitectureValidator()
@@ -202,6 +208,11 @@ def scan(
         dependencies = (
             DependencyAnalyzer()
             .analyze_project(path)
+        )
+
+        db_access_violations = (
+            DBAccessAnalyzer()
+            .analyze(dependencies)
         )
 
         progress.update(
@@ -371,6 +382,20 @@ def scan(
         console.print(
             "[green]✓ No circular dependencies found[/green]"
         )
+
+
+
+    if db_access_violations:
+
+        reporter.show_db_access_violations(
+          db_access_violations
+        )
+
+    else:
+
+       console.print(
+            "[green]✓ No direct database access found[/green]"
+       )
 
     if source_analysis:
 
