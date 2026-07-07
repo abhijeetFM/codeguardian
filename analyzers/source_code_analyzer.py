@@ -22,9 +22,7 @@ from src.tree.Walker import walk
 
 class SourceCodeAnalyzer:
 
-    def analyze_python_file(
-        self,
-        file_path
+    def analyze_python_file(self,file_path
     ):
 
         with open(
@@ -46,7 +44,6 @@ class SourceCodeAnalyzer:
                 node,
                 ast.ClassDef
             ):
-
                 classes.append(
                     node.name
                 )
@@ -55,27 +52,19 @@ class SourceCodeAnalyzer:
                 node,
                 ast.FunctionDef
             ):
-
                 functions.append(
                     node.name
                 )
 
         return {
-
             "file": str(file_path),
-
             "classes": classes,
-
             "functions": functions,
-
             "imports": []
         }
 
-    def analyze_ts_js_file(
-        self,
-        file_path
+    def analyze_ts_js_file(self,file_path
     ):
-
         with open(
             file_path,
             "r",
@@ -83,48 +72,37 @@ class SourceCodeAnalyzer:
         ) as file:
 
             source = file.read()
-
         tree = parse_typescript(
             source
         )
-
         class_extractor = (
             ClassExtractor()
         )
-
         function_extractor = (
             functionExtractor()
         )
-
         import_extractor = (
             importExtractor()
         )
-
         walk(
             tree.root_node,
             class_extractor.visit
         )
-
         walk(
             tree.root_node,
             function_extractor.visit
         )
-
         walk(
             tree.root_node,
             import_extractor.visit
         )
-
         return {
 
             "file": str(file_path),
-
             "classes":
                 class_extractor.classes,
-
             "functions":
                 function_extractor.function,
-
             "imports":
                 import_extractor.imports
         }

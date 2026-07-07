@@ -35,9 +35,25 @@ from reports.architecture_score import (
 from reports.html_reporter import (
     HtmlReporter
 )
+from reports.markdown_reporter import (
+    MarkdownReporter
+)
 
 
-app = typer.Typer()
+app = typer.Typer(
+        help="""
+    CodeGuardian
+
+    Analyze your project's architecture and code quality.
+
+    Supported languages:
+    • Python (.py)
+    • TypeScript (.ts)
+    • JavaScript (.js)
+
+    Generate reports in Console, JSON, HTML and Markdown.
+    """
+    )
 console = Console()
 
 
@@ -52,15 +68,21 @@ def get_score_color(score):
     return "red"
 
 
-def calculate_project_score(path: str):
-
+def calculate_project_score(
+    path,
+    max_file_lines=300,
+    max_function_lines=50
+):
     file_violations = (
-        FileAnalyzer().analyze(path)
+        FileAnalyzer(
+            max_file_lines
+        ).analyze(path)
     )
 
     function_violations = (
-        FunctionAnalyzer()
-        .analyze_project(path)
+        FunctionAnalyzer(
+            max_function_lines
+        ).analyze_project(path)
     )
 
     dependencies = (
@@ -116,29 +138,68 @@ def count_python_files(path):
     return count
 
 
-@app.command()
+@app.command(
+    help="""
+Run a complete architecture scan.
+
+Examples:
+
+  python main.py scan
+
+  python main.py scan --json
+
+  python main.py scan --html
+
+  python main.py scan --markdown
+
+  python main.py scan --score
+
+  python main.py scan --details
+"""
+)
 def scan(
 
     path: str = ".",
+    max_file_lines: int = typer.Option(
+        300,
+        "--max-file-lines",
+        help="Maximum allowed lines per file."
+    ),
 
+    max_function_lines: int = typer.Option(
+        50,
+        "--max-function-lines",
+        help="Maximum allowed lines per function."
+    ),
     json_output: bool = typer.Option(
         False,
         "--json",
         "-j",
-        help="Export results as JSON"
+        help="Generate a JSON report."
     ),
 
     html_output: bool = typer.Option(
         False,
         "--html",
-        help="Generate HTML report"
+        help="Generate an HTML report."
     ),
 
     score_only: bool = typer.Option(
         False,
         "--score",
-        help="Show only architecture score"
-    )
+        help="Display only the architecture score."
+    ),
+    details: bool = typer.Option(
+        False,
+        "--details",
+        help="Show detailed classes, functions and imports."
+    ),
+    markdown_output: bool = typer.Option(
+        False,
+        "--markdown",
+        help="Generate a Markdown report."
+    ),
+        
 ):
     if not (
         json_output
@@ -160,6 +221,7 @@ def scan(
         disable=(
             json_output
             or html_output
+            or markdown_output
             or score_only
         )
     ) as progress:
@@ -170,8 +232,9 @@ def scan(
         )
 
         file_violations = (
-            FileAnalyzer()
-            .analyze(path)
+            FileAnalyzer(
+                max_file_lines
+            ).analyze(path)
         )
 
         progress.update(
@@ -185,8 +248,9 @@ def scan(
         )
 
         function_violations = (
-            FunctionAnalyzer()
-            .analyze_project(path)
+            FunctionAnalyzer(
+                max_function_lines
+            ).analyze_project(path)
         )
 
         progress.update(
@@ -261,11 +325,7 @@ def scan(
 
         score = (
             ArchitectureScoreCalculator()
-            .calculate(
-                file_violations,
-                function_violations,
-                architecture_violations,
-                circular_violations
+            .calculate(file_violations,function_violations,architecture_violations,circular_violations
             )
         )
 
@@ -278,13 +338,7 @@ def scan(
 
         output = (
             JsonReporter()
-            .generate(
-                file_violations,
-                function_violations,
-                architecture_violations,
-                circular_violations,
-                source_analysis,
-                score
+            .generate(file_violations,function_violations,architecture_violations,circular_violations,source_analysis,score
             )
         )
 
@@ -294,7 +348,18 @@ def scan(
     
     if html_output:
 
-        HtmlReporter().generate(
+        HtmlReporter().generate(file_violations,function_violations,architecture_violations,circular_violations,source_analysis,score
+        )
+
+        console.print(
+            "[green]✓ report.html generated[/green]"
+        )
+
+        return
+    
+    if markdown_output:
+
+        MarkdownReporter().generate(
             file_violations,
             function_violations,
             architecture_violations,
@@ -304,7 +369,7 @@ def scan(
         )
 
         console.print(
-            "[green]✓ report.html generated[/green]"
+            "[green]✓ report.md generated[/green]"
         )
 
         return
@@ -375,12 +440,15 @@ def scan(
     if source_analysis:
 
         reporter.show_source_analysis(
-            source_analysis
+            source_analysis,
+            details
         )
 
     score_color = get_score_color(score)
 
     console.print()
+
+    
 
     console.print(
         Panel.fit(
@@ -391,42 +459,44 @@ def scan(
             title="Health Report"
         )
     )
-
-
-@app.command()
-def score(path: str = "."):
-
-    score_value = (
-        calculate_project_score(path)
-    )
-
-    score_color = get_score_color(
-        score_value
-    )
-
     console.print(
-        Panel.fit(
-            f"[bold {score_color}]"
-            f"Architecture Score: "
-            f"{score_value}/100"
-            f"[/bold {score_color}]",
-            title="Code Health"
-        )
+        "[bold green]✓ Scan completed successfully[/bold green]"
     )
 
 
+
+
+
 @app.command()
-def report(path: str = "."):
+def report(
+
+    path: str = ".",
+
+    max_file_lines: int = typer.Option(
+        300,
+        "--max-file-lines",
+        help="Maximum allowed lines per file."
+    ),
+
+    max_function_lines: int = typer.Option(
+        50,
+        "--max-function-lines",
+        help="Maximum allowed lines per function."
+    )
+):
 
     reporter = ConsoleReporter()
 
     file_violations = (
-        FileAnalyzer().analyze(path)
+        FileAnalyzer(
+            max_file_lines
+        ).analyze(path)
     )
 
     function_violations = (
-        FunctionAnalyzer()
-        .analyze_project(path)
+        FunctionAnalyzer(
+            max_function_lines
+        ).analyze_project(path)
     )
 
     dependencies = (
@@ -446,21 +516,11 @@ def report(path: str = "."):
 
     score = (
         ArchitectureScoreCalculator()
-        .calculate(
-            file_violations,
-            function_violations,
-            architecture_violations,
-            circular_violations
+        .calculate(file_violations,function_violations,architecture_violations,circular_violations
         )
     )
 
     total_files = count_python_files(path)
 
-    reporter.show_summary(
-        total_files,
-        file_violations,
-        function_violations,
-        architecture_violations,
-        circular_violations,
-        score
+    reporter.show_summary(total_files,file_violations,function_violations,architecture_violations,circular_violations,score
     )

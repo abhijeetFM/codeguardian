@@ -6,13 +6,7 @@ from config.config_loader import ConfigLoader
 
 
 from src.discovery.finder import discover_files
-IGNORE_DIRS = {
-    "venv",
-    ".git",
-    "__pycache__",
-    ".pytest_cache",
-    "node_modules"
-}
+
 
 class FileViolation:
 

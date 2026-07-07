@@ -218,7 +218,8 @@ class ConsoleReporter:
 
     def show_source_analysis(
         self,
-        source_analysis
+        source_analysis,
+        details=False
     ):
 
         table = Table(
@@ -232,20 +233,55 @@ class ConsoleReporter:
 
         table.add_column(
             "Classes",
+            justify="center",
             style="green"
         )
 
         table.add_column(
             "Functions",
+            justify="center",
             style="yellow"
         )
 
         table.add_column(
             "Imports",
+            justify="center",
             style="magenta"
         )
 
         for item in source_analysis:
+
+            table.add_row(
+                item["file"],
+                str(len(item["classes"])),
+                str(len(item["functions"])),
+                str(len(item["imports"]))
+            )
+
+        self.console.print(table)
+
+        if not details:
+            return
+
+        self.console.rule(
+            "[bold blue]Source Code Details[/bold blue]"
+        )
+
+        for item in source_analysis:
+
+            # Skip completely empty files
+            if (
+                not item["classes"]
+                and not item["functions"]
+                and not item["imports"]
+            ):
+                continue
+
+            self.console.print()
+
+            self.console.print(
+                f"[bold cyan]{item['file']}[/bold cyan]"
+            )
 
             classes = (
                 ", ".join(item["classes"])
@@ -260,16 +296,23 @@ class ConsoleReporter:
             )
 
             imports = (
-                "\n".join(item["imports"])
+                ", ".join(item["imports"])
                 if item["imports"]
                 else "-"
             )
 
-            table.add_row(
-                item["file"],
-                classes,
-                functions,
-                imports
+            self.console.print(
+                f"[green]Classes:[/green] {classes}"
             )
 
-        self.console.print(table)
+            self.console.print(
+                f"[yellow]Functions:[/yellow] {functions}"
+            )
+
+            self.console.print(
+                f"[magenta]Imports:[/magenta] {imports}"
+            )
+
+            self.console.print(
+                "-" * 70
+            )
