@@ -39,6 +39,10 @@ from reports.markdown_reporter import (
     MarkdownReporter
 )
 
+from analyzers.db_access_analyzer import (
+    DBAccessAnalyzer
+)
+
 
 app = typer.Typer(
         help="""
@@ -89,6 +93,8 @@ def calculate_project_score(
         DependencyAnalyzer()
         .analyze_project(path)
     )
+
+    
 
     architecture_violations = (
         ArchitectureValidator()
@@ -268,6 +274,11 @@ def scan(
             .analyze_project(path)
         )
 
+        db_access_violations = (
+            DBAccessAnalyzer()
+            .analyze(dependencies)
+        )
+
         progress.update(
             dependency_task,
             advance=1
@@ -436,6 +447,20 @@ def scan(
         console.print(
             "[green]✓ No circular dependencies found[/green]"
         )
+
+
+
+    if db_access_violations:
+
+        reporter.show_db_access_violations(
+          db_access_violations
+        )
+
+    else:
+
+       console.print(
+            "[green]✓ No direct database access found[/green]"
+       )
 
     if source_analysis:
 

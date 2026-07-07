@@ -160,6 +160,38 @@ class ConsoleReporter:
 
         self.console.print(table)
 
+
+    def show_db_access_violations(
+        self,
+        violations
+    ):
+
+        table = Table(
+        title="Direct Database Access"
+        )
+
+        table.add_column(
+        "Controller",
+        style="cyan"
+        )
+
+        table.add_column(
+        "Database",
+        style="red"
+        )
+
+        for violation in violations:
+
+            table.add_row(
+
+            violation.source_file,
+
+            violation.database_library
+
+         )
+
+        self.console.print(table)
+
     def show_summary(
         self,
         total_files,
