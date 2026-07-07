@@ -17,12 +17,26 @@ from src.extractor.import_extractor import (
     importExtractor
 )
 
+from src.extractor.python_function_extractor import (
+    PythonFunctionExtractor
+)
+
+from src.extractor.python_class_extractor import (
+    PythonClassExtractor
+)
+
+from src.extractor.python_imports_extractor import (
+    PythonImportExtractor
+)
+
 from src.tree.Walker import walk
 
 
 class SourceCodeAnalyzer:
 
-    def analyze_python_file(self,file_path
+    def analyze_python_file(
+        self,
+        file_path
     ):
 
         with open(
@@ -35,36 +49,33 @@ class SourceCodeAnalyzer:
 
         tree = ast.parse(source)
 
-        classes = []
-        functions = []
+        class_extractor = (
+            PythonClassExtractor()
+        )
+        class_extractor.extract(tree)
 
-        for node in ast.walk(tree):
+        function_extractor = (
+            PythonFunctionExtractor()
+        )
+        function_extractor.extract(tree)
 
-            if isinstance(
-                node,
-                ast.ClassDef
-            ):
-                classes.append(
-                    node.name
-                )
-
-            elif isinstance(
-                node,
-                ast.FunctionDef
-            ):
-                functions.append(
-                    node.name
-                )
+        import_extractor = (
+            PythonImportExtractor()
+        )
+        import_extractor.extract(tree)
 
         return {
             "file": str(file_path),
-            "classes": classes,
-            "functions": functions,
-            "imports": []
+            "classes": class_extractor.classes,
+            "functions": function_extractor.functions,
+            "imports": import_extractor.imports
         }
 
-    def analyze_ts_js_file(self,file_path
+    def analyze_ts_js_file(
+        self,
+        file_path
     ):
+
         with open(
             file_path,
             "r",
@@ -72,39 +83,43 @@ class SourceCodeAnalyzer:
         ) as file:
 
             source = file.read()
+
         tree = parse_typescript(
             source
         )
+
         class_extractor = (
             ClassExtractor()
         )
+
         function_extractor = (
             functionExtractor()
         )
+
         import_extractor = (
             importExtractor()
         )
+
         walk(
             tree.root_node,
             class_extractor.visit
         )
+
         walk(
             tree.root_node,
             function_extractor.visit
         )
+
         walk(
             tree.root_node,
             import_extractor.visit
         )
-        return {
 
+        return {
             "file": str(file_path),
-            "classes":
-                class_extractor.classes,
-            "functions":
-                function_extractor.function,
-            "imports":
-                import_extractor.imports
+            "classes": class_extractor.classes,
+            "functions": function_extractor.function,
+            "imports": import_extractor.imports
         }
 
     def analyze(
@@ -115,9 +130,7 @@ class SourceCodeAnalyzer:
         results = []
 
         files = discover_files(
-
             Path(path),
-
             {
                 ".py",
                 ".ts",
@@ -130,7 +143,6 @@ class SourceCodeAnalyzer:
             if file_path.suffix == ".py":
 
                 results.append(
-
                     self.analyze_python_file(
                         file_path
                     )
@@ -139,7 +151,6 @@ class SourceCodeAnalyzer:
             else:
 
                 results.append(
-
                     self.analyze_ts_js_file(
                         file_path
                     )
