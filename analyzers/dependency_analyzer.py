@@ -8,13 +8,7 @@ from src.parser.ts_parser import (
 )
 
 from src.tree.Walker import walk
-IGNORE_DIRS = {
-    "venv",
-    ".git",
-    "__pycache__",
-    ".pytest_cache",
-    "node_modules"
-}
+
 
 class Dependency:
 
@@ -32,10 +26,10 @@ class DependencyAnalyzer:
 
     def __init__(self):
 
-        config = ConfigLoader.load()
+        self.config = ConfigLoader.load()
 
         self.supported_extensions = set(
-            config["supported_extensions"]
+            self.config["supported_extensions"]
         )
 
     def analyze_python_file(
@@ -190,10 +184,10 @@ class DependencyAnalyzer:
 
         dependencies = []
 
-        config = ConfigLoader.load()
+       
 
         ignore_dirs = set(
-            config[
+            self.config[
                 "ignored_directories"
             ]
         )
