@@ -1,3 +1,7 @@
+from utils.layer_utils import get_layer
+
+
+
 class DBAccessViolation:
 
     def __init__(self, source_file, database_library):
@@ -23,7 +27,7 @@ class DBAccessAnalyzer:
 
         for dependency in dependencies:
 
-          source_layer = self.get_layer(dependency.source_file)
+          source_layer = get_layer(dependency.source_file)
 
           if source_layer != "controllers":
 
@@ -46,19 +50,6 @@ class DBAccessAnalyzer:
         return violations
     
 
-    def get_layer(self,module_name):
-
-        parts = module_name.split(".")
-
-        for part in parts:
-
-            if part in {
-                "controllers",
-                "services",
-                "repositories"
-            }:
-                return part
-        return None
             
 
         

@@ -2,6 +2,8 @@ from config.config_loader import (
     ConfigLoader
 )
 
+from utils.layer_utils import get_layer
+
 
 class ArchitectureViolation:
 
@@ -32,12 +34,7 @@ class ArchitectureValidator:
             ]
         }
 
-    def get_layer(
-        self,
-        module_name
-    ):
 
-        return module_name.split(".")[0]
 
     def validate(
         self,
@@ -48,11 +45,11 @@ class ArchitectureValidator:
 
         for dep in dependencies:
 
-            source_layer = self.get_layer(
+            source_layer = get_layer(
                 dep.source_file
             )
 
-            target_layer = self.get_layer(
+            target_layer = get_layer(
                 dep.target_module
             )
 
