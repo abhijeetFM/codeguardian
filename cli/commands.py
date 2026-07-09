@@ -484,6 +484,16 @@ def scan(
             title="Health Report"
         )
     )
+
+    critical_found = (
+        len(architecture_violations) > 0
+        or len(circular_violations) > 0
+    )
+
+    if critical_found:
+        raise typer.Exit(code=1)
+
+
     console.print(
         "[bold green]✓ Scan completed successfully[/bold green]"
     )
