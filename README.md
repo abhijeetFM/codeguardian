@@ -24,6 +24,8 @@ After committing, restore the hook:
 Rename-Item .git\hooks\pre-commit.bak pre-commit
 ```
 
+
+
 or reinstall it:
 
 ```bash

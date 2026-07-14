@@ -15,6 +15,9 @@ IGNORE_DIRS = {
 
 
 def discover_files(project_path, extensions) -> list[Path]:
+
+    
+
     project_path = Path(project_path)
 
     files = []
@@ -31,3 +34,6 @@ def discover_files(project_path, extensions) -> list[Path]:
             files.append(file)
 
     return files
+
+
+    

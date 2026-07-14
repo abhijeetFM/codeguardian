@@ -9,7 +9,7 @@ from src.parser.ts_parser import (
 
 from src.tree.Walker import walk
 
-
+from utils.ast_cache import ASTCache
 class Dependency:
 
     def __init__(
@@ -59,7 +59,10 @@ class DependencyAnalyzer:
 
             source = file.read()
 
-        tree = ast.parse(source)
+        tree = ASTCache.get_tree(
+          file_path,
+          source
+        )
 
         for node in ast.walk(tree):
 
@@ -123,7 +126,10 @@ class DependencyAnalyzer:
 
             source = file.read()
 
-        tree = parse_typescript(source)
+        tree = ASTCache.get_tree(
+         file_path,
+         source
+        )
 
         def visit(node):
 
