@@ -4,6 +4,9 @@ from rich.table import Table
 from reports.severity import (
     get_severity
 )
+from rich.panel import Panel
+from rich.text import Text
+
 
 
 class ConsoleReporter:
@@ -11,6 +14,133 @@ class ConsoleReporter:
     def __init__(self):
 
         self.console = Console()
+
+    def show_dashboard(
+        self,
+        source_analysis,
+        file_violations,
+        function_violations,
+        architecture_violations,
+        circular_violations,
+        db_access_violations,
+        score
+    ):
+
+        total_files = len(source_analysis)
+
+        total_classes = sum(
+            len(item["classes"])
+            for item in source_analysis
+        )
+
+        total_functions = sum(
+            len(item["functions"])
+            for item in source_analysis
+        )
+
+        total_imports = sum(
+            len(item["imports"])
+            for item in source_analysis
+        )
+
+        if score >= 90:
+            score_style = "green"
+
+        elif score >= 70:
+            score_style = "yellow"
+
+        else:
+            score_style = "red"
+
+        dashboard = Text()
+
+        dashboard.append(
+            f"✔ Files Scanned              : {total_files}\n",
+            style="cyan"
+        )
+
+        dashboard.append(
+            f"✔ Classes                    : {total_classes}\n",
+            style="green"
+        )
+
+        dashboard.append(
+            f"✔ Functions                  : {total_functions}\n",
+            style="green"
+        )
+
+        dashboard.append(
+            f"✔ Imports                    : {total_imports}\n\n",
+            style="green"
+        )
+
+       # Oversized Files
+        if len(file_violations) == 0:
+            dashboard.append(
+                f"✔ Oversized Files            : 0\n",
+                style="green"
+            )
+        else:
+            dashboard.append(
+                f"⚠ Oversized Files            : {len(file_violations)}\n",
+                style="yellow"
+            )
+
+        # Oversized Functions
+        if len(function_violations) == 0:
+            dashboard.append(
+                f"✔ Oversized Functions        : 0\n",
+                style="green"
+            )
+        else:
+            dashboard.append(
+                f"⚠ Oversized Functions        : {len(function_violations)}\n",
+                style="yellow"
+            )
+
+        # Architecture Violations
+        if len(architecture_violations) == 0:
+            dashboard.append(
+                f"✔ Architecture Violations    : 0\n",
+                style="green"
+            )
+        else:
+            dashboard.append(
+                f"✖ Architecture Violations    : {len(architecture_violations)}\n",
+                style="red"
+            )
+
+        # Circular Dependencies
+        if len(circular_violations) == 0:
+            dashboard.append(
+                f"✔ Circular Dependencies      : 0\n",
+                style="green"
+            )
+        else:
+            dashboard.append(
+                f"✖ Circular Dependencies      : {len(circular_violations)}\n",
+                style="red"
+            )
+
+        # Direct Database Access
+        if len(db_access_violations) == 0:
+            dashboard.append(
+                f"✔ Direct DB Access           : 0\n\n",
+                style="green"
+            )
+        else:
+            dashboard.append(
+                f"✖ Direct DB Access           : {len(db_access_violations)}\n\n",
+                style="red"
+            )
+
+        self.console.print(
+            Panel.fit(
+                dashboard,
+                title="Architecture Dashboard",
+                border_style="cyan"
+            )
+        )
 
     def show_file_violations(
         self,
@@ -51,6 +181,7 @@ class ConsoleReporter:
             )
 
         self.console.print(table)
+
 
     def show_function_violations(
         self,

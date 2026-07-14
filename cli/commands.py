@@ -400,6 +400,18 @@ def scan(
 
         return
 
+    reporter.show_dashboard(
+        source_analysis,
+        file_violations,
+        function_violations,
+        architecture_violations,
+        circular_violations,
+        db_access_violations,
+        score
+    )
+
+    console.print()
+
     if file_violations:
 
         reporter.show_file_violations(
@@ -411,7 +423,6 @@ def scan(
         console.print(
             "[green]✓ No oversized files found[/green]"
         )
-
     if function_violations:
 
         reporter.show_function_violations(
