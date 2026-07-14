@@ -46,11 +46,14 @@ class SourceCodeAnalyzer:
         ) as file:
 
             source = file.read()
+        try:
+            tree = ASTCache.get_tree(
+            file_path,
+            source
+            )
 
-        tree = ASTCache.get_tree(
-          file_path,
-          source
-        )
+        except SyntaxError:
+            return None
 
         class_extractor = (
             PythonClassExtractor()
@@ -86,11 +89,16 @@ class SourceCodeAnalyzer:
         ) as file:
 
             source = file.read()
-
-        tree = ASTCache.get_tree(
-         file_path,
-         source
-        )
+        try:
+            tree = ASTCache.get_tree(
+            file_path,
+            source
+            )
+        except Exception:
+            return None
+        
+        if tree.root_node.has_error:
+           return None
 
         class_extractor = (
             ClassExtractor()
@@ -146,18 +154,16 @@ class SourceCodeAnalyzer:
 
             if file_path.suffix == ".py":
 
-                results.append(
-                    self.analyze_python_file(
-                        file_path
-                    )
+                result = self.analyze_python_file(
+                  file_path
                 )
 
             else:
 
-                results.append(
-                    self.analyze_ts_js_file(
-                        file_path
-                    )
+                result = self.analyze_ts_js_file(
+                file_path
                 )
+            if result is not None:
+                results.append(result)
 
         return results

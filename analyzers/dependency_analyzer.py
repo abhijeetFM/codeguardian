@@ -58,11 +58,13 @@ class DependencyAnalyzer:
         ) as file:
 
             source = file.read()
-
-        tree = ASTCache.get_tree(
-          file_path,
-          source
-        )
+        try:
+           tree = ASTCache.get_tree(
+           file_path,
+           source
+           )
+        except SyntaxError:
+            return []
 
         for node in ast.walk(tree):
 
@@ -125,11 +127,16 @@ class DependencyAnalyzer:
         ) as file:
 
             source = file.read()
-
-        tree = ASTCache.get_tree(
-         file_path,
-         source
-        )
+        try:
+            tree = ASTCache.get_tree(
+             file_path,
+             source
+            )
+        except Exception:
+            return []
+        
+        if tree.root_node.has_error:
+            return []
 
         def visit(node):
 

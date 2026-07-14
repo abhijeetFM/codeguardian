@@ -1,12 +1,9 @@
 import ast
-import os
+
 
 from config.config_loader import ConfigLoader
-from src.discovery.finder import discover_files
 
-from src.parser.ts_parser import (
-    parse_typescript
-)
+
 
 from src.tree.Walker import walk
 from utils.file_cache import FileCache
@@ -62,11 +59,14 @@ class FunctionAnalyzer:
         ) as f:
 
             source = f.read()
+        try:
 
-        tree = ASTCache.get_tree(
-         file_path,
-         source
-        )
+            tree = ASTCache.get_tree(
+            file_path,
+            source
+            )
+        except SyntaxError:
+            return []
 
         for node in ast.walk(tree):
 
@@ -108,10 +108,17 @@ class FunctionAnalyzer:
 
             source = file.read()
 
-        tree = ASTCache.get_tree(
-         file_path,
-         source
-        )
+
+        try:
+            tree = ASTCache.get_tree(
+             file_path,
+             source
+            )
+        except Exception:
+            return []
+        
+        if tree.root_node.has_error:
+           return []
 
         def visit(node):
 
