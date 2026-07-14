@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 class HtmlReporter:
 
     def generate(
@@ -10,138 +13,275 @@ class HtmlReporter:
         score
     ):
 
-        html = f"""
-        <html>
+        if score >= 90:
+            score_color = "#28a745"
+            status = "🟢 Excellent"
+        elif score >= 70:
+            score_color = "#ffc107"
+            status = "🟡 Good"
+        else:
+            score_color = "#dc3545"
+            status = "🔴 Needs Improvement"
 
-        <head>
+        total_files = len(source_analysis)
 
-            <title>
-                CodeGuardian Report
-            </title>
+        total_classes = sum(
+            len(item["classes"])
+            for item in source_analysis
+        )
 
-        </head>
+        total_functions = sum(
+            len(item["functions"])
+            for item in source_analysis
+        )
 
-        <body>
+        total_imports = sum(
+            len(item["imports"])
+            for item in source_analysis
+        )
 
-            <h1>
-                CodeGuardian Report
-            </h1>
+        html = f"""<!DOCTYPE html>
 
-            <h2>
-                Architecture Score:
-                {score}/100
-            </h2>
+<html>
 
-            <h3>
-                Oversized Files
-            </h3>
+<head>
 
-            <ul>
-        """
+<meta charset="UTF-8">
 
-        for violation in file_violations:
+<title>CodeGuardian Report</title>
 
-            html += f"""
+<link rel="stylesheet" href="reports/style.css">
 
-            <li>
+</head>
 
-                {violation.file_path}
-                ({violation.line_count} lines)
+<body>
 
-            </li>
+<div class="container">
 
-            """
+<h1>CodeGuardian Report</h1>
+
+<p>
+
+<b>Generated:</b>
+
+{datetime.now().strftime("%d %B %Y %H:%M")}
+
+</p>
+
+<div class="dashboard">
+
+<div
+class="score"
+style="color:{score_color};">
+
+Architecture Score
+
+</div>
+
+<div class="progress">
+
+<div
+class="progress-bar"
+style="width:{score}%; background:{score_color};">
+
+</div>
+
+</div>
+
+<h2>{score}/100</h2>
+
+<p class="status">
+
+{status}
+
+</p>
+
+<div class="grid">
+
+<div class="card blue">
+<h3>📄 Files</h3>
+<p>{total_files}</p>
+</div>
+
+<div class="card green">
+<h3>🏛 Classes</h3>
+<p>{total_classes}</p>
+</div>
+
+<div class="card green">
+<h3>⚙ Functions</h3>
+<p>{total_functions}</p>
+</div>
+
+<div class="card blue">
+<h3>📦 Imports</h3>
+<p>{total_imports}</p>
+</div>
+
+<div class="card orange">
+<h3>⚠ Oversized Files</h3>
+<p>{len(file_violations)}</p>
+</div>
+
+<div class="card orange">
+<h3>⚠ Oversized Functions</h3>
+<p>{len(function_violations)}</p>
+</div>
+
+<div class="card red">
+<h3>❌ Architecture Issues</h3>
+<p>{len(architecture_violations)}</p>
+</div>
+
+<div class="card red">
+<h3>🔁 Circular Dependencies</h3>
+<p>{len(circular_violations)}</p>
+</div>
+
+</div>
+
+</div>
+"""
+        def section(
+            title,
+            headers,
+            rows
+        ):
+
+            nonlocal html
+
+            html += f"<h2>{title}</h2>"
+
+            if not rows:
+
+                html += """
+<p class="ok">
+✔ No issues found.
+</p>
+"""
+                return
+
+            html += "<table>"
+
+            html += "<tr>"
+
+            for header in headers:
+
+                html += f"<th>{header}</th>"
+
+            html += "</tr>"
+
+            for row in rows:
+
+                html += "<tr>"
+
+                for cell in row:
+
+                    html += f"<td>{cell}</td>"
+
+                html += "</tr>"
+
+            html += "</table>"
+        section(
+            "Oversized Files",
+            ["File", "Lines"],
+            [
+                [
+                    violation.file_path,
+                    violation.line_count
+                ]
+                for violation in file_violations
+            ]
+        )
+
+        section(
+            "Oversized Functions",
+            ["Function", "Lines"],
+            [
+                [
+                    violation.function_name,
+                    violation.line_count
+                ]
+                for violation in function_violations
+            ]
+        )
+
+        section(
+            "Architecture Violations",
+            ["File", "Rule Broken"],
+            [
+                [
+                    violation.source_file,
+                    f"{violation.source_layer} → {violation.target_layer}"
+                ]
+                for violation in architecture_violations
+            ]
+        )
+
+        section(
+            "Circular Dependencies",
+            ["Dependency Cycle"],
+            [
+                [
+                    " → ".join(
+                        violation.cycle
+                    )
+                ]
+                for violation in circular_violations
+            ]
+        )
 
         html += """
+<h2>Source Code Analysis</h2>
 
-            </ul>
+<table>
 
-            <h3>
-                Oversized Functions
-            </h3>
+<tr>
 
-            <ul>
+<th>File</th>
 
-        """
+<th>Classes</th>
 
-        for violation in function_violations:
+<th>Functions</th>
 
-            html += f"""
+<th>Imports</th>
 
-            <li>
+</tr>
+"""
 
-                {violation.function_name}
-                ({violation.line_count} lines)
-
-            </li>
-
-            """
-
-        html += """
-
-            </ul>
-
-            <h3>
-                Architecture Violations
-            </h3>
-
-            <ul>
-
-        """
-
-        for violation in architecture_violations:
+        for item in source_analysis:
 
             html += f"""
+<tr>
 
-            <li>
+<td>{item["file"]}</td>
 
-                {violation.source_file}
+<td>{len(item["classes"])}</td>
 
-                :
+<td>{len(item["functions"])}</td>
 
-                {violation.source_layer}
+<td>{len(item["imports"])}</td>
 
-                →
-
-                {violation.target_layer}
-
-            </li>
-
-            """
+</tr>
+"""
 
         html += """
+</table>
 
-            </ul>
+<div class="footer">
 
-            <h3>
-                Circular Dependencies
-            </h3>
+Generated by <b>CodeGuardian</b><br>
 
-            <ul>
+Version 1.0
 
-        """
+</div>
 
-        for violation in circular_violations:
+</div>
 
-            html += f"""
+</body>
 
-            <li>
-
-                {" → ".join(violation.cycle)}
-
-            </li>
-
-            """
-
-        html += """
-
-            </ul>
-
-        </body>
-
-        </html>
-
-        """
+</html>
+"""
 
         with open(
             "report.html",
