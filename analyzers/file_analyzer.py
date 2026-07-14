@@ -3,6 +3,7 @@ import os
 from config.config_loader import ConfigLoader
 
 
+from utils.file_cache import FileCache
 
 
 from src.discovery.finder import discover_files
@@ -51,10 +52,10 @@ class FileAnalyzer:
 
         violations = []
 
-        files = discover_files(
-            project_path,
-            self.supported_extensions
-)
+        files = FileCache.get_files(
+         project_path,
+         self.supported_extensions
+        )
 
         for file_path in files:
 

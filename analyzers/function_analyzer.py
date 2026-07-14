@@ -9,6 +9,8 @@ from src.parser.ts_parser import (
 )
 
 from src.tree.Walker import walk
+from utils.file_cache import FileCache
+from utils.ast_cache import ASTCache
 
 
 class FunctionViolation:
@@ -61,7 +63,10 @@ class FunctionAnalyzer:
 
             source = f.read()
 
-        tree = ast.parse(source)
+        tree = ASTCache.get_tree(
+         file_path,
+         source
+        )
 
         for node in ast.walk(tree):
 
@@ -103,8 +108,9 @@ class FunctionAnalyzer:
 
             source = file.read()
 
-        tree = parse_typescript(
-            source
+        tree = ASTCache.get_tree(
+         file_path,
+         source
         )
 
         def visit(node):
@@ -155,10 +161,10 @@ class FunctionAnalyzer:
 
       violations = []
 
-      files = discover_files(
+      files = FileCache.get_files(
         project_path,
         self.supported_extensions
-     )
+        )    
 
       for file_path in files:
 
