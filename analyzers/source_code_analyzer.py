@@ -4,7 +4,7 @@ from pathlib import Path
 
 from src.discovery.finder import discover_files
 from src.parser.ts_parser import parse_typescript
-
+from utils.file_cache import FileCache
 from src.extractor.class_extractor import (
     ClassExtractor
 )
@@ -129,13 +129,13 @@ class SourceCodeAnalyzer:
 
         results = []
 
-        files = discover_files(
-            Path(path),
-            {
-                ".py",
-                ".ts",
-                ".js"
-            }
+        files = FileCache.get_files(
+            path,
+         {
+        ".py",
+        ".ts",
+        ".js"
+         }
         )
 
         for file_path in files:
