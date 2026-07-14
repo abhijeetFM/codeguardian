@@ -30,7 +30,7 @@ from src.extractor.python_imports_extractor import (
 )
 
 from src.tree.Walker import walk
-
+from utils.ast_cache import ASTCache
 
 class SourceCodeAnalyzer:
 
@@ -47,7 +47,10 @@ class SourceCodeAnalyzer:
 
             source = file.read()
 
-        tree = ast.parse(source)
+        tree = ASTCache.get_tree(
+          file_path,
+          source
+        )
 
         class_extractor = (
             PythonClassExtractor()
@@ -84,8 +87,9 @@ class SourceCodeAnalyzer:
 
             source = file.read()
 
-        tree = parse_typescript(
-            source
+        tree = ASTCache.get_tree(
+         file_path,
+         source
         )
 
         class_extractor = (
