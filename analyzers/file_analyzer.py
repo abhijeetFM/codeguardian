@@ -37,7 +37,7 @@ class FileAnalyzer:
             ]
 
         self.max_lines = max_lines
-        print("Max file lines:", self.max_lines)
+       
 
         self.supported_extensions = set(
 
