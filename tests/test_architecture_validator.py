@@ -1,49 +1,41 @@
-from analyzers.dependency_analyzer import DependencyAnalyzer
-from rules.architecture_validator import ArchitectureValidator
-
-
-dependencies = (
-    DependencyAnalyzer()
-    .analyze_project(".")
+from rules.architecture_validator import (
+    ArchitectureValidator
 )
 
-validator = ArchitectureValidator()
 
-print("\nForbidden Rules:")
-print(validator.forbidden_dependencies)
+class FakeDependency:
 
-print("\nDependencies:\n")
+    def __init__(
+        self,
+        source_file,
+        target_module
+    ):
 
-for dep in dependencies:
+        self.source_file = source_file
+        self.target_module = target_module
 
-    source_layer = validator.get_layer(
-        dep.source_file
+
+def test_architecture_validator_detects_forbidden_dependency():
+
+    dependency = FakeDependency(
+        "sample_project.controllers.user_controller",
+        "sample_project.repositories.user_repository"
     )
 
-    target_layer = validator.get_layer(
-        dep.target_module
+    validator = ArchitectureValidator()
+
+    violations = validator.validate(
+        [dependency]
     )
 
-    print(
-        dep.source_file,
-        "=>",
-        source_layer,
-        "|",
-        dep.target_module,
-        "=>",
-        target_layer
+    assert len(violations) == 1
+
+    assert (
+        violations[0].source_layer
+        == "controllers"
     )
 
-violations = validator.validate(dependencies)
-
-print("\nViolations:\n")
-
-for v in violations:
-
-    print(
-        v.source_file,
-        "->",
-        v.source_layer,
-        "->",
-        v.target_layer
+    assert (
+        violations[0].target_layer
+        == "repositories"
     )
