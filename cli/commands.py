@@ -42,6 +42,9 @@ from reports.markdown_reporter import (
 from analyzers.db_access_analyzer import (
     DBAccessAnalyzer
 )
+from reports.statistics_reporter import (
+    StatisticsReporter
+)
 
 
 app = typer.Typer(
@@ -74,8 +77,8 @@ def get_score_color(score):
 
 def calculate_project_score(
     path,
-    max_file_lines=300,
-    max_function_lines=50
+    max_file_lines=None,
+    max_function_lines=None
 ):
     file_violations = (
         FileAnalyzer(
@@ -92,6 +95,10 @@ def calculate_project_score(
     dependencies = (
         DependencyAnalyzer()
         .analyze_project(path)
+    )
+    db_access_violations = (
+        DBAccessAnalyzer()
+        .analyze(dependencies)
     )
 
     
@@ -112,7 +119,8 @@ def calculate_project_score(
             file_violations,
             function_violations,
             architecture_violations,
-            circular_violations
+            circular_violations,
+            db_access_violations
         )
     )
 
@@ -166,14 +174,14 @@ Examples:
 def scan(
 
     path: str = ".",
-    max_file_lines: int = typer.Option(
-        300,
+    max_file_lines: int | None = typer.Option(
+        None,
         "--max-file-lines",
         help="Maximum allowed lines per file."
     ),
 
-    max_function_lines: int = typer.Option(
-        50,
+    max_function_lines: int | None = typer.Option(
+        None,
         "--max-function-lines",
         help="Maximum allowed lines per function."
     ),
@@ -204,6 +212,12 @@ def scan(
         False,
         "--markdown",
         help="Generate a Markdown report."
+    ),
+    statistics: bool = typer.Option(
+        False,
+        "--statistics",
+        "-s",
+        help="Display project scan statistics."
     ),
         
 ):
@@ -336,7 +350,7 @@ def scan(
 
         score = (
             ArchitectureScoreCalculator()
-            .calculate(file_violations,function_violations,architecture_violations,circular_violations
+            .calculate(file_violations,function_violations,architecture_violations,circular_violations,db_access_violations
             )
         )
 
@@ -349,7 +363,7 @@ def scan(
 
         output = (
             JsonReporter()
-            .generate(file_violations,function_violations,architecture_violations,circular_violations,source_analysis,score
+            .generate(file_violations,function_violations,architecture_violations,circular_violations,db_access_violations,source_analysis,score
             )
         )
 
@@ -359,7 +373,7 @@ def scan(
     
     if html_output:
 
-        HtmlReporter().generate(file_violations,function_violations,architecture_violations,circular_violations,source_analysis,score
+        HtmlReporter().generate(file_violations,function_violations,architecture_violations,circular_violations,db_access_violations,source_analysis,score
         )
 
         console.print(
@@ -375,6 +389,7 @@ def scan(
             function_violations,
             architecture_violations,
             circular_violations,
+            db_access_violations,
             source_analysis,
             score
         )
@@ -398,6 +413,18 @@ def scan(
             f"[/bold {score_color}]"
         )
 
+        return
+    if statistics:
+
+        StatisticsReporter().show_statistics(
+            source_analysis,
+            file_violations,
+            function_violations,
+            architecture_violations,
+            circular_violations,
+            db_access_violations,
+            score
+        )
         return
 
     reporter.show_dashboard(
@@ -518,16 +545,14 @@ def report(
 
     path: str = ".",
 
-    max_file_lines: int = typer.Option(
-        300,
-        "--max-file-lines",
-        help="Maximum allowed lines per file."
+    max_file_lines: int | None = typer.Option(
+        None,
+        "--max-file-lines"
     ),
 
-    max_function_lines: int = typer.Option(
-        50,
-        "--max-function-lines",
-        help="Maximum allowed lines per function."
+    max_function_lines: int | None = typer.Option(
+        None,
+        "--max-function-lines"
     )
 ):
 
@@ -549,6 +574,10 @@ def report(
         DependencyAnalyzer()
         .analyze_project(path)
     )
+    db_access_violations = (
+        DBAccessAnalyzer()
+        .analyze(dependencies)
+    )
 
     architecture_violations = (
         ArchitectureValidator()
@@ -559,14 +588,15 @@ def report(
         CircularDependencyAnalyzer()
         .detect(dependencies)
     )
+    
 
     score = (
         ArchitectureScoreCalculator()
-        .calculate(file_violations,function_violations,architecture_violations,circular_violations
+        .calculate(file_violations,function_violations,architecture_violations,circular_violations,db_access_violations
         )
     )
 
     total_files = count_python_files(path)
 
-    reporter.show_summary(total_files,file_violations,function_violations,architecture_violations,circular_violations,score
+    reporter.show_summary(total_files,file_violations,function_violations,architecture_violations,circular_violations,db_access_violations,score
     )

@@ -330,6 +330,7 @@ class ConsoleReporter:
         function_violations,
         architecture_violations,
         circular_violations,
+        db_access_violations,
         score
     ):
 
@@ -370,6 +371,11 @@ class ConsoleReporter:
         table.add_row(
             "Circular Dependencies",
             str(len(circular_violations))
+        )
+
+        table.add_row(
+            "Direct Database Access",
+            str(len(db_access_violations))
         )
 
         table.add_row(
