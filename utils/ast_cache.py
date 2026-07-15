@@ -10,21 +10,38 @@ class ASTCache:
     _cache = {}
 
     @classmethod
-    def get_tree(cls, file_path, source):
+    def get_tree(
+        cls,
+        file_path,
+        source
+    ):
 
-        file_path = str(Path(file_path).resolve())
+        file_path = str(
+            Path(file_path).resolve()
+        )
 
-        if file_path not in cls._cache:
+        cached_data = cls._cache.get(
+            file_path
+        )
 
-           
+        if (
+            cached_data is not None
+            and cached_data["source"] == source
+        ):
 
-            if file_path.endswith(".py"):
+            return cached_data["tree"]
 
-                cls._cache[file_path] = ast.parse(source)
+        if file_path.endswith(".py"):
 
-            else:
+            tree = ast.parse(source)
 
-                cls._cache[file_path] = parse_typescript(source)
-        
+        else:
 
-        return cls._cache[file_path]
+            tree = parse_typescript(source)
+
+        cls._cache[file_path] = {
+            "source": source,
+            "tree": tree
+        }
+
+        return tree

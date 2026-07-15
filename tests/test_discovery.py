@@ -3,11 +3,27 @@ from pathlib import Path
 from src.discovery.finder import discover_files
 
 
-files = discover_files(
-    Path("samples")
-)
+def test_discover_files():
 
-print("\nDiscovered files:\n")
+    extensions = {
+        ".py",
+        ".ts",
+        ".js"
+    }
 
-for file in files:
-    print(file)
+    files = discover_files(
+        Path("samples"),
+        extensions
+    )
+
+    assert isinstance(
+        files,
+        list
+    )
+
+    assert len(files) > 0
+
+    assert all(
+        file.suffix in extensions
+        for file in files
+    )
