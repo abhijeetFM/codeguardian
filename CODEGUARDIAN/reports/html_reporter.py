@@ -9,6 +9,7 @@ class HtmlReporter:
         function_violations,
         architecture_violations,
         circular_violations,
+        db_access_violations,
         source_analysis,
         score
     ):

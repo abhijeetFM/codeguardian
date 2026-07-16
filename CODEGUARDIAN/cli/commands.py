@@ -5,44 +5,44 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
 
-from analyzers.file_analyzer import FileAnalyzer
-from analyzers.function_analyzer import FunctionAnalyzer
-from analyzers.dependency_analyzer import (
+from CODEGUARDIAN.analyzers.file_analyzer import FileAnalyzer
+from CODEGUARDIAN.analyzers.function_analyzer import FunctionAnalyzer
+from CODEGUARDIAN.analyzers.dependency_analyzer import (
     DependencyAnalyzer
 )
-from analyzers.circular_dependency_analyzer import (
+from CODEGUARDIAN.analyzers.circular_dependency_analyzer import (
     CircularDependencyAnalyzer
 )
-from analyzers.source_code_analyzer import (
+from CODEGUARDIAN.analyzers.source_code_analyzer import (
     SourceCodeAnalyzer
 )
 
-from rules.architecture_validator import (
+from CODEGUARDIAN.rules.architecture_validator import (
     ArchitectureValidator
 )
 
-from reports.console_reporter import (
+from CODEGUARDIAN.reports.console_reporter import (
     ConsoleReporter
 )
 
-from reports.json_reporter import (
+from CODEGUARDIAN.reports.json_reporter import (
     JsonReporter
 )
 
-from reports.architecture_score import (
+from CODEGUARDIAN.reports.architecture_score import (
     ArchitectureScoreCalculator
 )
-from reports.html_reporter import (
+from CODEGUARDIAN.reports.html_reporter import (
     HtmlReporter
 )
-from reports.markdown_reporter import (
+from CODEGUARDIAN.reports.markdown_reporter import (
     MarkdownReporter
 )
 
-from analyzers.db_access_analyzer import (
+from CODEGUARDIAN.analyzers.db_access_analyzer import (
     DBAccessAnalyzer
 )
-from reports.statistics_reporter import (
+from CODEGUARDIAN.reports.statistics_reporter import (
     StatisticsReporter
 )
 
@@ -363,7 +363,15 @@ def scan(
 
         output = (
             JsonReporter()
-            .generate(file_violations,function_violations,architecture_violations,circular_violations,db_access_violations,source_analysis,score
+            .generate(
+                
+                file_violations,
+                function_violations,
+                architecture_violations,
+                circular_violations,
+                db_access_violations,
+                source_analysis,
+                score
             )
         )
 
@@ -373,7 +381,15 @@ def scan(
     
     if html_output:
 
-        HtmlReporter().generate(file_violations,function_violations,architecture_violations,circular_violations,db_access_violations,source_analysis,score
+        HtmlReporter().generate(
+           
+            file_violations,
+            function_violations,
+            architecture_violations,
+            circular_violations,
+            db_access_violations,
+            source_analysis,
+            score
         )
 
         console.print(
@@ -385,6 +401,7 @@ def scan(
     if markdown_output:
 
         MarkdownReporter().generate(
+           
             file_violations,
             function_violations,
             architecture_violations,

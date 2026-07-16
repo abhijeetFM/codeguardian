@@ -1,5 +1,5 @@
 from tree_sitter import Node
-from src.tree.Walker import walk
+from CODEGUARDIAN.src.tree.Walker import walk
 
 
 class importExtractor:

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codeguardian"
+version = "1.0.0"
+description = "Architecture and code quality analyzer"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "rich",
+    "typer"
+]
+
+[project.scripts]
+codeguardian = "CODEGUARDIAN.main:app"
+
+[tool.setuptools.packages.find]
+include = ["CODEGUARDIAN*"]

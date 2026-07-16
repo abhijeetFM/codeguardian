@@ -2,35 +2,35 @@ import ast
 
 from pathlib import Path
 
-from src.discovery.finder import discover_files
-from src.parser.ts_parser import parse_typescript
-from utils.file_cache import FileCache
-from src.extractor.class_extractor import (
+from CODEGUARDIAN.src.discovery.finder import discover_files
+from CODEGUARDIAN.src.parser.ts_parser import parse_typescript
+from CODEGUARDIAN.utils.file_cache import FileCache
+from CODEGUARDIAN.src.extractor.class_extractor import (
     ClassExtractor
 )
 
-from src.extractor.function_extractor import (
+from CODEGUARDIAN.src.extractor.function_extractor import (
     functionExtractor
 )
 
-from src.extractor.import_extractor import (
+from CODEGUARDIAN.src.extractor.import_extractor import (
     importExtractor
 )
 
-from src.extractor.python_function_extractor import (
+from CODEGUARDIAN.src.extractor.python_function_extractor import (
     PythonFunctionExtractor
 )
 
-from src.extractor.python_class_extractor import (
+from CODEGUARDIAN.src.extractor.python_class_extractor import (
     PythonClassExtractor
 )
 
-from src.extractor.python_imports_extractor import (
+from CODEGUARDIAN.src.extractor.python_imports_extractor import (
     PythonImportExtractor
 )
 
-from src.tree.Walker import walk
-from utils.ast_cache import ASTCache
+from CODEGUARDIAN.src.tree.Walker import walk
+from CODEGUARDIAN.utils.ast_cache import ASTCache
 
 class SourceCodeAnalyzer:
 

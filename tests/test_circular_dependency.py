@@ -1,8 +1,8 @@
-from analyzers.dependency_analyzer import (
+from CODEGUARDIAN.analyzers.dependency_analyzer import (
     DependencyAnalyzer
 )
 
-from analyzers.circular_dependency_analyzer import (
+from CODEGUARDIAN.analyzers.circular_dependency_analyzer import (
     CircularDependencyAnalyzer
 )
 

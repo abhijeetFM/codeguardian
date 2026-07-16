@@ -1,4 +1,4 @@
-from config.config_loader import (
+from CODEGUARDIAN.config.config_loader import (
     ConfigLoader
 )
 

@@ -9,10 +9,10 @@ class JsonReporter:
         function_violations,
         architecture_violations,
         circular_violations,
+        db_access_violations,
         source_analysis,
         score
     ):
-
         report = {
 
             "architecture_score": score,

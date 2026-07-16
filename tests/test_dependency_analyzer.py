@@ -1,4 +1,4 @@
-from analyzers.dependency_analyzer import (
+from CODEGUARDIAN.analyzers.dependency_analyzer import (
     DependencyAnalyzer
 )
 

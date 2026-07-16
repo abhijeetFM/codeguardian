@@ -1,4 +1,4 @@
-from analyzers.dependency_analyzer import DependencyAnalyzer
+from CODEGUARDIAN.analyzers.dependency_analyzer import DependencyAnalyzer
 
 
 dependencies = (

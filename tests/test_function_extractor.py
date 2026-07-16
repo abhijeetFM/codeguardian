@@ -1,8 +1,8 @@
-from src.parser.ts_parser import parse_typescript
-from src.extractor.function_extractor import (
+from CODEGUARDIAN.src.parser.ts_parser import parse_typescript
+from CODEGUARDIAN.src.extractor.function_extractor import (
     functionExtractor
 )
-from src.tree.Walker import walk
+from CODEGUARDIAN.src.tree.Walker import walk
 
 
 with open(

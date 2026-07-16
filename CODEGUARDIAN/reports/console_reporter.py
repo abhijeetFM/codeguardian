@@ -1,7 +1,7 @@
 from rich.console import Console
 from rich.table import Table
 
-from reports.severity import (
+from CODEGUARDIAN.reports.severity import (
     get_severity
 )
 from rich.panel import Panel

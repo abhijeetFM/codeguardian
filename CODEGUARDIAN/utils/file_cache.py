@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.discovery.finder import discover_files
+from CODEGUARDIAN.src.discovery.finder import discover_files
 
 
 class FileCache:

@@ -1,4 +1,4 @@
-from analyzers.function_analyzer import FunctionAnalyzer
+from CODEGUARDIAN.analyzers.function_analyzer import FunctionAnalyzer
 
 
 def test_function_analyzer_detects_large_function(

@@ -1,15 +1,15 @@
 import ast
 import os
 
-from config.config_loader import ConfigLoader
+from CODEGUARDIAN.config.config_loader import ConfigLoader
 
-from src.parser.ts_parser import (
+from CODEGUARDIAN.src.parser.ts_parser import (
     parse_typescript
 )
 
-from src.tree.Walker import walk
+from CODEGUARDIAN.src.tree.Walker import walk
 
-from utils.ast_cache import ASTCache
+from CODEGUARDIAN.utils.ast_cache import ASTCache
 class Dependency:
 
     def __init__(

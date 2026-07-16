@@ -1,13 +1,13 @@
 import ast
 
 
-from config.config_loader import ConfigLoader
+from CODEGUARDIAN.config.config_loader import ConfigLoader
 
 
 
-from src.tree.Walker import walk
-from utils.file_cache import FileCache
-from utils.ast_cache import ASTCache
+from CODEGUARDIAN.src.tree.Walker import walk
+from CODEGUARDIAN.utils.file_cache import FileCache
+from CODEGUARDIAN.utils.ast_cache import ASTCache
 
 
 class FunctionViolation:

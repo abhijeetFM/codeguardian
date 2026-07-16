@@ -1,8 +1,8 @@
-from config.config_loader import (
+from CODEGUARDIAN.config.config_loader import (
     ConfigLoader
 )
 
-from utils.layer_utils import get_layer
+from CODEGUARDIAN.utils.layer_utils import get_layer
 
 
 class ArchitectureViolation:

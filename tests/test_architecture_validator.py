@@ -1,31 +1,18 @@
-from rules.architecture_validator import (
-    ArchitectureValidator
-)
+from analyzers.dependency_analyzer import DependencyAnalyzer
+from rules.architecture_validator import ArchitectureValidator
 
 
-class FakeDependency:
+def test_architecture_validator():
 
-    def __init__(
-        self,
-        source_file,
-        target_module
-    ):
-
-        self.source_file = source_file
-        self.target_module = target_module
-
-
-def test_architecture_validator_detects_forbidden_dependency():
-
-    dependency = FakeDependency(
-        "sample_project.controllers.user_controller",
-        "sample_project.repositories.user_repository"
+    dependencies = (
+        DependencyAnalyzer()
+        .analyze_project(".")
     )
 
     validator = ArchitectureValidator()
 
     violations = validator.validate(
-        [dependency]
+        dependencies
     )
 
     assert len(violations) == 1

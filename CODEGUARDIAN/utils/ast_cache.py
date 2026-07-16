@@ -2,7 +2,7 @@ import ast
 
 from pathlib import Path
 
-from src.parser.ts_parser import parse_typescript
+from CODEGUARDIAN.src.parser.ts_parser import parse_typescript
 
 
 class ASTCache:

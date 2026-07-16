@@ -1,12 +1,12 @@
 import os
 
-from config.config_loader import ConfigLoader
+from CODEGUARDIAN.config.config_loader import ConfigLoader
 
 
-from utils.file_cache import FileCache
+from CODEGUARDIAN.utils.file_cache import FileCache
 
 
-from src.discovery.finder import discover_files
+from CODEGUARDIAN.src.discovery.finder import discover_files
 
 
 class FileViolation:

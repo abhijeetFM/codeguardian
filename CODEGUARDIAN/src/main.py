@@ -1,15 +1,15 @@
 from pathlib import Path
 
-from parser.ts_parser import parse_typescript
+from CODEGUARDIAN.src.parser.ts_parser import parse_typescript
 
-from discovery.finder import discover_files
+from CODEGUARDIAN.src.discovery.finder import discover_files
 
-from extractor.class_extractor import ClassExtractor
+from CODEGUARDIAN.src.extractor.class_extractor import ClassExtractor
 
-from extractor.import_extractor import importExtractor
+from CODEGUARDIAN.src.extractor.import_extractor import importExtractor
 
-from extractor.function_extractor import functionExtractor
-from tree.Walker import walk
+from CODEGUARDIAN.src.extractor.function_extractor import functionExtractor
+from CODEGUARDIAN.src.tree.Walker import walk
 
 
 

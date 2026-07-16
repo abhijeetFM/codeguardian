@@ -1,4 +1,4 @@
-from src.parser.ts_parser import (
+from CODEGUARDIAN.src.parser.ts_parser import (
     parse_typescript
 )
 
