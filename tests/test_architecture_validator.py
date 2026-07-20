@@ -1,5 +1,5 @@
-from analyzers.dependency_analyzer import DependencyAnalyzer
-from rules.architecture_validator import ArchitectureValidator
+from CODEGUARDIAN.analyzers.dependency_analyzer import DependencyAnalyzer
+from CODEGUARDIAN.rules.architecture_validator import ArchitectureValidator
 
 
 def test_architecture_validator():

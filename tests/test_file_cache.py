@@ -1,4 +1,4 @@
-from utils.file_cache import FileCache
+from CODEGUARDIAN.utils.file_cache import FileCache
 
 
 def test_file_cache_returns_same_result():

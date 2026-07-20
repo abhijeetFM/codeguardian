@@ -1,4 +1,4 @@
-from utils.ast_cache import ASTCache
+from CODEGUARDIAN.utils.ast_cache import ASTCache
 
 
 def test_ast_cache_returns_same_tree():

@@ -1,6 +1,6 @@
-from analyzers.function_analyzer import FunctionAnalyzer
+from CODEGUARDIAN.analyzers.function_analyzer import FunctionAnalyzer
 
-from analyzers.source_code_analyzer import SourceCodeAnalyzer
+from CODEGUARDIAN.analyzers.source_code_analyzer import SourceCodeAnalyzer
 
 
 def test_malformed_typescript_is_skipped():
