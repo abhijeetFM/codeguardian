@@ -173,7 +173,10 @@ Examples:
 )
 def scan(
 
-    path: str = ".",
+    path: str = typer.Argument(
+        ".",
+        help="Path of the project to scan."
+    ),
     max_file_lines: int | None = typer.Option(
         None,
         "--max-file-lines",

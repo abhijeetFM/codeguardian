@@ -3,17 +3,19 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "codeguardian"
-version = "1.0.0"
+name = "codeguardian-cli"
+version = "1.1.2"
 description = "Architecture and code quality analyzer"
 readme = "README.md"
 requires-python = ">=3.10"
 
+
 dependencies = [
     "rich",
-    "typer"
+    "typer",
+    "tree-sitter",
+    "tree-sitter-typescript",
 ]
-
 [project.scripts]
 codeguardian = "CODEGUARDIAN.main:app"
 

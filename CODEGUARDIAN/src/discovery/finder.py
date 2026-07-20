@@ -1,16 +1,18 @@
 from pathlib import Path
 
 IGNORE_DIRS = {
-    "venv",          
+    "venv",
     ".venv",
+    "env",
+    ".env",
+    "cg_env",
     ".git",
     "__pycache__",
-    ".pytest_cache", 
+    ".pytest_cache",
     "node_modules",
     "dist",
     "build",
     "tests",
-    
 }
 
 
