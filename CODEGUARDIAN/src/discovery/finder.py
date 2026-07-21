@@ -1,11 +1,9 @@
 from pathlib import Path
+import os
 
 IGNORE_DIRS = {
     "venv",
     ".venv",
-    "env",
-    ".env",
-    "cg_env",
     ".git",
     "__pycache__",
     ".pytest_cache",
@@ -16,26 +14,37 @@ IGNORE_DIRS = {
 }
 
 
-def discover_files(project_path, extensions) -> list[Path]:
-
-    
+def discover_files(project_path, extensions):
 
     project_path = Path(project_path)
 
     files = []
 
-    for file in project_path.rglob("*"):
+    for root, dirs, filenames in os.walk(project_path):
 
-        if any(part in IGNORE_DIRS for part in file.parts):
-            continue
+        # Ignore predefined directories
+        dirs[:] = [
+            d for d in dirs
+            if d not in IGNORE_DIRS
+        ]
 
-        if file.name.startswith("test_"):
-            continue
+        # Ignore Python virtual environments
+        dirs[:] = [
+            d for d in dirs
+            if not (Path(root) / d / "pyvenv.cfg").exists()
+        ]
 
-        if file.is_file() and file.suffix in extensions:
-            files.append(file)
+        for filename in filenames:
+
+            file_path = Path(root) / filename
+
+            if filename.startswith("test_"):
+                continue
+
+            if (
+                file_path.is_file()
+                and file_path.suffix in extensions
+            ):
+                files.append(file_path)
 
     return files
-
-
-    
