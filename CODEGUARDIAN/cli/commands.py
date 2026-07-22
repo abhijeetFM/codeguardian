@@ -5,6 +5,10 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
 
+import os
+import shutil
+from pathlib import Path
+
 from CODEGUARDIAN.analyzers.file_analyzer import FileAnalyzer
 from CODEGUARDIAN.analyzers.function_analyzer import FunctionAnalyzer
 from CODEGUARDIAN.analyzers.dependency_analyzer import (
@@ -62,7 +66,39 @@ app = typer.Typer(
     """
     )
 console = Console()
+@app.command()
+def init():
 
+    """
+    Create a default codeguardian.json file.
+    """
+
+    source = (
+        Path(__file__).parent.parent
+        / "config"
+        / "default_config.json"
+    )
+
+    destination = "codeguardian.json"
+
+    # Check if the user already has a config file
+    if os.path.exists(destination):
+
+        console.print(
+            "[yellow]codeguardian.json already exists.[/yellow]"
+        )
+
+        return
+
+    # Copy the package's default configuration
+    shutil.copy(
+        source,
+        destination
+    )
+
+    console.print(
+        "[green]Successfully created codeguardian.json[/green]"
+    )
 
 def get_score_color(score):
 

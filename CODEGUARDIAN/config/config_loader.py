@@ -1,47 +1,9 @@
 import json
 import os
+from pathlib import Path
 
 
 class ConfigLoader:
-
-    DEFAULT_CONFIG = {
-
-        "max_file_lines": 300,
-
-        "max_function_lines": 50,
-        "supported_extensions": [
-            ".py",
-            ".ts",
-            ".js"
-        ],
-
-        "ignored_directories": [
-            "venv",
-            ".git",
-            "__pycache__",
-            ".pytest_cache"
-        ],
-
-        "forbidden_dependencies": [
-            [
-                "controllers",
-                "repositories"
-            ]
-        ],
-
-        "enable_circular_dependency_check": True,
-
-        "architecture_score": {
-
-            "file_penalty": 10,
-
-            "function_penalty": 5,
-
-            "architecture_penalty": 20,
-
-            "circular_dependency_penalty": 30
-        }
-    }
 
     @classmethod
     def load(
@@ -49,28 +11,27 @@ class ConfigLoader:
         config_path="codeguardian.json"
     ):
 
-        if not os.path.exists(config_path):
+        # Use user's configuration file if it exists
+        if os.path.exists(config_path):
 
-            print(
-                "⚠ codeguardian.json not found."
-            )
+            with open(
+                config_path,
+                "r",
+                encoding="utf-8"
+            ) as file:
 
-            print(
-                "Using default configuration."
-            )
+                return json.load(file)
 
-            return cls.DEFAULT_CONFIG
+        # Otherwise use the package's default configuration
+        default_path = (
+            Path(__file__).parent
+            / "default_config.json"
+        )
 
         with open(
-            config_path,
+            default_path,
             "r",
             encoding="utf-8"
         ) as file:
 
-            user_config = json.load(file)
-
-        config = cls.DEFAULT_CONFIG.copy()
-
-        config.update(user_config)
-
-        return config
+            return json.load(file)
