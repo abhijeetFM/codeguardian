@@ -103,6 +103,7 @@ The following flags are supported with the `scan` command:
 | --markdown | Generate Markdown report |
 | --details | Display detailed source code analysis |
 | --score | Display architecture score |
+| --stayistics |Display an overall stats of the project|
 
 Examples:
 
@@ -128,6 +129,12 @@ Display architecture score:
 
 ```bash
 codeguardian scan . --score
+```
+
+Display statistic:
+
+```bash
+codeguardian scan . --statistics
 ```
 
 Display detailed source code analysis:
