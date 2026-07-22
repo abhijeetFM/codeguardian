@@ -190,21 +190,40 @@ def count_python_files(path):
 
 @app.command(
     help="""
-Run a complete architecture scan.
+Run a complete architecture and code quality scan of your project.
+
+This command analyzes your source code for:
+- Oversized files and functions
+- Architecture rule violations
+- Circular dependencies
+- Direct database access violations
+- Source code metrics and architecture score
 
 Examples:
 
-  python main.py scan
+  Basic scan:
+    python main.py scan
 
-  python main.py scan --json
+  Generate reports:
+    python main.py scan --json
+    python main.py scan --html
+    python main.py scan --markdown
 
-  python main.py scan --html
+  Display only the architecture score:
+    python main.py scan --score
 
-  python main.py scan --markdown
+  Show detailed source code analysis:
+    python main.py scan --details
 
-  python main.py scan --score
+  Display project statistics:
+    python main.py scan --statistics
 
-  python main.py scan --details
+  Customize file and function size limits:
+    python main.py scan --max-file-lines 200
+    python main.py scan --max-function-lines 50
+
+  Scan a specific project directory:
+    python main.py scan ./my_project
 """
 )
 def scan(
