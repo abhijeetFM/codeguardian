@@ -399,7 +399,7 @@ python install_hook.py
 | Field | Value |
 |------|------|
 | Package Name | codeguardian-cli |
-| Current Version | 1.2.2 |
+| Current Version | 1.2.3 |
 
 Install directly from PyPI:
 
