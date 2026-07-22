@@ -495,67 +495,25 @@ def scan(
 
     console.print()
 
-    if file_violations:
+    reporter.show_file_violations(
+        file_violations
+    )
 
-        reporter.show_file_violations(
-            file_violations
-        )
+    reporter.show_function_violations(
+        function_violations
+    )
 
-    else:
+    reporter.show_architecture_violations(
+        architecture_violations
+    )
 
-        console.print(
-            "[green]✓ No oversized files found[/green]"
-        )
-    if function_violations:
+    reporter.show_circular_dependencies(
+        circular_violations
+    )
 
-        reporter.show_function_violations(
-            function_violations
-        )
-
-    else:
-
-        console.print(
-            "[green]✓ No oversized functions found[/green]"
-        )
-
-    if architecture_violations:
-
-        reporter.show_architecture_violations(
-            architecture_violations
-        )
-
-    else:
-
-        console.print(
-            "[green]✓ No architecture violations found[/green]"
-        )
-
-    if circular_violations:
-
-        reporter.show_circular_dependencies(
-            circular_violations
-        )
-
-    else:
-
-        console.print(
-            "[green]✓ No circular dependencies found[/green]"
-        )
-
-
-
-    if db_access_violations:
-
-        reporter.show_db_access_violations(
-          db_access_violations
-        )
-
-    else:
-
-       console.print(
-            "[green]✓ No direct database access found[/green]"
-       )
-
+    reporter.show_db_access_violations(
+        db_access_violations
+    )
     if source_analysis:
 
         reporter.show_source_analysis(

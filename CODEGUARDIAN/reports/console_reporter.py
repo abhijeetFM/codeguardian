@@ -166,18 +166,28 @@ class ConsoleReporter:
             style="yellow"
         )
 
-        for violation in violations:
+        if violations:
 
-            severity = get_severity(
-                violation.line_count,
-                warning_threshold=300,
-                critical_threshold=500
-            )
+            for violation in violations:
+
+                severity = get_severity(
+                    violation.line_count,
+                    warning_threshold=300,
+                    critical_threshold=500
+                )
+
+                table.add_row(
+                    violation.file_path,
+                    str(violation.line_count),
+                    severity
+                )
+
+        else:
 
             table.add_row(
-                violation.file_path,
-                str(violation.line_count),
-                severity
+                "No oversized files found",
+                "-",
+                "✓"
             )
 
         self.console.print(table)
@@ -206,19 +216,27 @@ class ConsoleReporter:
             "Severity",
             style="yellow"
         )
+        if violations:
 
-        for violation in violations:
+            for violation in violations:
 
-            severity = get_severity(
-                violation.line_count,
-                warning_threshold=50,
-                critical_threshold=100
-            )
+                severity = get_severity(
+                    violation.line_count,
+                    warning_threshold=50,
+                    critical_threshold=100
+                )
+
+                table.add_row(
+                    violation.function_name,
+                    str(violation.line_count),
+                    severity
+                )
+        else:
 
             table.add_row(
-                violation.function_name,
-                str(violation.line_count),
-                severity
+                "No oversized functions found",
+                "-",
+                "✓"
             )
 
         self.console.print(table)
@@ -246,17 +264,28 @@ class ConsoleReporter:
             "Severity",
             style="red"
         )
+        
 
-        for violation in violations:
+        if violations:
+
+            for violation in violations:
+
+                table.add_row(
+                    violation.source_file,
+                    (
+                        f"{violation.source_layer}"
+                        f" → "
+                        f"{violation.target_layer}"
+                    ),
+                    "🔴 CRITICAL"
+                )
+
+        else:
 
             table.add_row(
-                violation.source_file,
-                (
-                    f"{violation.source_layer}"
-                    f" → "
-                    f"{violation.target_layer}"
-                ),
-                "🔴 CRITICAL"
+                "No architecture violations found",
+                "-",
+                "✓"
             )
 
         self.console.print(table)
@@ -280,13 +309,21 @@ class ConsoleReporter:
             style="red"
         )
 
-        for violation in violations:
+        if violations:
+
+            for violation in violations:
+
+                table.add_row(
+                    " → ".join(
+                        violation.cycle
+                    ),
+                    "🔴 CRITICAL"
+                )
+        else:
 
             table.add_row(
-                " → ".join(
-                    violation.cycle
-                ),
-                "🔴 CRITICAL"
+                "No circular dependencies found",
+                "✓"
             )
 
         self.console.print(table)
@@ -311,15 +348,25 @@ class ConsoleReporter:
         style="red"
         )
 
-        for violation in violations:
+
+        if violations:
+
+            for violation in violations:
+
+                table.add_row(
+
+                violation.source_file,
+
+                violation.database_library
+
+            )
+                
+        else:
 
             table.add_row(
-
-            violation.source_file,
-
-            violation.database_library
-
-         )
+                "No direct database access found",
+                "-"
+            )
 
         self.console.print(table)
 
