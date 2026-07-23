@@ -1,0 +1,14 @@
+{
+  "name": "codeguardian-cli",
+  "version": "1.0.0",
+  "description": "NPM wrapper for CodeGuardian CLI",
+  "bin": {
+    "cg-wrapper": "./bin/codeguardian.js"
+},
+  "keywords": [
+    "codeguardian",
+    "architecture",
+    "static-analysis"
+  ],
+  "license": "MIT"
+}
