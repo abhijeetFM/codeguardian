@@ -8,16 +8,26 @@ class importExtractor:
 
     def visit(self, node):
 
-      if node.type != "import_statement":
-          return
+      if node.type not in { "import_statement","export_statement"}:
+         return
+     
 
-      for child in node.children:
+      source_node = node.child_by_field_name("source")
 
-          if child.type == "string":
+      if not source_node:
+        return
 
-              self.imports.append(
-                child.text.decode("utf8").strip('"')
-            )
+      module = (
+         source_node.text
+         .decode("utf8")
+         .replace('"', "")
+         .replace("'", "")
+        )
+
+      self.imports.append(module)
+
+      
+      
 
   
 
