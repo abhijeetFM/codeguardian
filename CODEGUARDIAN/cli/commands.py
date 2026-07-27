@@ -1,0 +1,635 @@
+import os
+import typer
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress
+
+import os
+import shutil
+from pathlib import Path
+
+from CODEGUARDIAN.analyzers.file_analyzer import FileAnalyzer
+from CODEGUARDIAN.analyzers.function_analyzer import FunctionAnalyzer
+from CODEGUARDIAN.analyzers.dependency_analyzer import (
+    DependencyAnalyzer
+)
+from CODEGUARDIAN.analyzers.circular_dependency_analyzer import (
+    CircularDependencyAnalyzer
+)
+from CODEGUARDIAN.analyzers.source_code_analyzer import (
+    SourceCodeAnalyzer
+)
+
+from CODEGUARDIAN.rules.architecture_validator import (
+    ArchitectureValidator
+)
+
+from CODEGUARDIAN.reports.console_reporter import (
+    ConsoleReporter
+)
+
+from CODEGUARDIAN.reports.json_reporter import (
+    JsonReporter
+)
+
+from CODEGUARDIAN.reports.architecture_score import (
+    ArchitectureScoreCalculator
+)
+from CODEGUARDIAN.reports.html_reporter import (
+    HtmlReporter
+)
+from CODEGUARDIAN.reports.markdown_reporter import (
+    MarkdownReporter
+)
+
+from CODEGUARDIAN.analyzers.db_access_analyzer import (
+    DBAccessAnalyzer
+)
+from CODEGUARDIAN.reports.statistics_reporter import (
+    StatisticsReporter
+)
+
+
+app = typer.Typer(
+        help="""
+    CodeGuardian
+
+    Analyze your project's architecture and code quality.
+
+    Supported languages:
+    • Python (.py)
+    • TypeScript (.ts)
+    • JavaScript (.js)
+
+    Generate reports in Console, JSON, HTML and Markdown.
+    """
+    )
+console = Console()
+@app.command()
+def init():
+
+    """
+    Create a default codeguardian.json file.
+    """
+
+    source = (
+        Path(__file__).parent.parent
+        / "config"
+        / "default_config.json"
+    )
+
+    destination = "codeguardian.json"
+
+    # Check if the user already has a config file
+    if os.path.exists(destination):
+
+        console.print(
+            "[yellow]codeguardian.json already exists.[/yellow]"
+        )
+
+        return
+
+    # Copy the package's default configuration
+    shutil.copy(
+        source,
+        destination
+    )
+
+    console.print(
+        "[green]Successfully created codeguardian.json[/green]"
+    )
+
+def get_score_color(score):
+
+    if score >= 90:
+        return "green"
+
+    elif score >= 70:
+        return "yellow"
+
+    return "red"
+
+
+def calculate_project_score(
+    path,
+    max_file_lines=None,
+    max_function_lines=None
+):
+    file_violations = (
+        FileAnalyzer(
+            max_file_lines
+        ).analyze(path)
+    )
+
+    function_violations = (
+        FunctionAnalyzer(
+            max_function_lines
+        ).analyze_project(path)
+    )
+
+    dependencies = (
+        DependencyAnalyzer()
+        .analyze_project(path)
+    )
+    db_access_violations = (
+        DBAccessAnalyzer()
+        .analyze(dependencies)
+    )
+
+    
+
+    architecture_violations = (
+        ArchitectureValidator()
+        .validate(dependencies)
+    )
+
+    circular_violations = (
+        CircularDependencyAnalyzer()
+        .detect(dependencies)
+    )
+
+    return (
+        ArchitectureScoreCalculator()
+        .calculate(
+            file_violations,
+            function_violations,
+            architecture_violations,
+            circular_violations,
+            db_access_violations
+        )
+    )
+
+
+def count_python_files(path):
+
+    count = 0
+
+    ignore_dirs = {
+        "venv",
+        ".git",
+        "__pycache__",
+        ".pytest_cache"
+    }
+
+    for root, dirs, files in os.walk(path):
+
+        dirs[:] = [
+            d for d in dirs
+            if d not in ignore_dirs
+        ]
+
+        for file in files:
+
+            if file.endswith(".py"):
+
+                count += 1
+
+    return count
+
+
+@app.command(
+    help="""
+Run a complete architecture and code quality scan of your project.
+
+This command analyzes your source code for:
+- Oversized files and functions
+- Architecture rule violations
+- Circular dependencies
+- Direct database access violations
+- Source code metrics and architecture score
+
+Examples:
+
+  Basic scan:
+    python main.py scan
+
+  Generate reports:
+    python main.py scan --json
+    python main.py scan --html
+    python main.py scan --markdown
+
+  Display only the architecture score:
+    python main.py scan --score
+
+  Show detailed source code analysis:
+    python main.py scan --details
+
+  Display project statistics:
+    python main.py scan --statistics
+
+  Customize file and function size limits:
+    python main.py scan --max-file-lines 200
+    python main.py scan --max-function-lines 50
+
+  Scan a specific project directory:
+    python main.py scan ./my_project
+"""
+)
+def scan(
+
+    path: str = typer.Argument(
+        ".",
+        help="Path of the project to scan."
+    ),
+    max_file_lines: int | None = typer.Option(
+        None,
+        "--max-file-lines",
+        help="Maximum allowed lines per file."
+    ),
+
+    max_function_lines: int | None = typer.Option(
+        None,
+        "--max-function-lines",
+        help="Maximum allowed lines per function."
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        "-j",
+        help="Generate a JSON report."
+    ),
+
+    html_output: bool = typer.Option(
+        False,
+        "--html",
+        help="Generate an HTML report."
+    ),
+
+    score_only: bool = typer.Option(
+        False,
+        "--score",
+        help="Display only the architecture score."
+    ),
+    details: bool = typer.Option(
+        False,
+        "--details",
+        help="Show detailed classes, functions and imports."
+    ),
+    markdown_output: bool = typer.Option(
+        False,
+        "--markdown",
+        help="Generate a Markdown report."
+    ),
+    statistics: bool = typer.Option(
+        False,
+        "--statistics",
+        "-s",
+        help="Display project scan statistics."
+    ),
+        
+):
+    if not (
+        json_output
+        or html_output
+        or score_only
+    ):
+
+        console.print(
+            Panel.fit(
+                f"Scanning project: "
+                f"[bold cyan]{path}[/bold cyan]",
+                title="CodeGuardian"
+            )
+        )
+
+    reporter = ConsoleReporter()
+
+    with Progress(
+        disable=(
+            json_output
+            or html_output
+            or markdown_output
+            or score_only
+        )
+    ) as progress:
+
+        file_task = progress.add_task(
+            "[cyan]Analyzing files...",
+            total=1
+        )
+
+        file_violations = (
+            FileAnalyzer(
+                max_file_lines
+            ).analyze(path)
+        )
+
+        progress.update(
+            file_task,
+            advance=1
+        )
+
+        function_task = progress.add_task(
+            "[green]Analyzing functions...",
+            total=1
+        )
+
+        function_violations = (
+            FunctionAnalyzer(
+                max_function_lines
+            ).analyze_project(path)
+        )
+
+        progress.update(
+            function_task,
+            advance=1
+        )
+
+        dependency_task = progress.add_task(
+            "[yellow]Analyzing dependencies...",
+            total=1
+        )
+
+        dependencies = (
+            DependencyAnalyzer()
+            .analyze_project(path)
+        )
+
+        db_access_violations = (
+            DBAccessAnalyzer()
+            .analyze(dependencies)
+        )
+
+        progress.update(
+            dependency_task,
+            advance=1
+        )
+
+        architecture_task = progress.add_task(
+            "[red]Validating architecture...",
+            total=1
+        )
+
+        architecture_violations = (
+            ArchitectureValidator()
+            .validate(dependencies)
+        )
+
+        progress.update(
+            architecture_task,
+            advance=1
+        )
+
+        circular_task = progress.add_task(
+            "[magenta]Checking circular dependencies...",
+            total=1
+        )
+
+        circular_violations = (
+            CircularDependencyAnalyzer()
+            .detect(dependencies)
+        )
+
+        progress.update(
+            circular_task,
+            advance=1
+        )
+
+        source_task = progress.add_task(
+            "[blue]Analyzing JS/TS files...",
+            total=1
+        )
+
+        source_analysis = (
+            SourceCodeAnalyzer()
+            .analyze(path)
+        )
+
+        progress.update(
+            source_task,
+            advance=1
+        )
+
+        score_task = progress.add_task(
+            "[white]Calculating score...",
+            total=1
+        )
+
+        score = (
+            ArchitectureScoreCalculator()
+            .calculate(file_violations,function_violations,architecture_violations,circular_violations,db_access_violations
+            )
+        )
+
+        progress.update(
+            score_task,
+            advance=1
+        )
+
+    if json_output:
+
+        output = (
+            JsonReporter()
+            .generate(
+                
+                file_violations,
+                function_violations,
+                architecture_violations,
+                circular_violations,
+                db_access_violations,
+                source_analysis,
+                score
+            )
+        )
+
+        print(output)
+
+        return
+    
+    if html_output:
+
+        HtmlReporter().generate(
+           
+            file_violations,
+            function_violations,
+            architecture_violations,
+            circular_violations,
+            db_access_violations,
+            source_analysis,
+            score
+        )
+
+        console.print(
+            "[green]✓ report.html generated[/green]"
+        )
+
+        return
+    
+    if markdown_output:
+
+        MarkdownReporter().generate(
+           
+            file_violations,
+            function_violations,
+            architecture_violations,
+            circular_violations,
+            db_access_violations,
+            source_analysis,
+            score
+        )
+
+        console.print(
+            "[green]✓ report.md generated[/green]"
+        )
+
+        return
+
+
+    if score_only:
+
+        score_color = get_score_color(
+            score
+        )
+
+        console.print(
+            f"[bold {score_color}]"
+            f"{score}/100"
+            f"[/bold {score_color}]"
+        )
+
+        return
+    if statistics:
+
+        StatisticsReporter().show_statistics(
+            source_analysis,
+            file_violations,
+            function_violations,
+            architecture_violations,
+            circular_violations,
+            db_access_violations,
+            score
+        )
+        return
+
+    reporter.show_dashboard(
+        source_analysis,
+        file_violations,
+        function_violations,
+        architecture_violations,
+        circular_violations,
+        db_access_violations,
+        score
+    )
+
+    console.print()
+
+    reporter.show_file_violations(
+        file_violations
+    )
+
+    reporter.show_function_violations(
+        function_violations
+    )
+
+    reporter.show_architecture_violations(
+        architecture_violations
+    )
+
+    reporter.show_circular_dependencies(
+        circular_violations
+    )
+
+    reporter.show_db_access_violations(
+        db_access_violations
+    )
+    if source_analysis:
+
+        reporter.show_source_analysis(
+            source_analysis,
+            details
+        )
+
+    score_color = get_score_color(score)
+
+    console.print()
+
+    
+
+    console.print(
+        Panel.fit(
+            f"[bold {score_color}]"
+            f"Architecture Score: "
+            f"{score}/100"
+            f"[/bold {score_color}]",
+            title="Health Report"
+        )
+    )
+
+    critical_found = (
+        len(architecture_violations) > 0
+        or len(circular_violations) > 0
+    )
+
+    if critical_found:
+        raise typer.Exit(code=1)
+
+
+    console.print(
+        "[bold green]✓ Scan completed successfully[/bold green]"
+    )
+
+
+
+
+
+@app.command()
+def report(
+
+    path: str = ".",
+
+    max_file_lines: int | None = typer.Option(
+        None,
+        "--max-file-lines"
+    ),
+
+    max_function_lines: int | None = typer.Option(
+        None,
+        "--max-function-lines"
+    )
+):
+
+    reporter = ConsoleReporter()
+
+    file_violations = (
+        FileAnalyzer(
+            max_file_lines
+        ).analyze(path)
+    )
+
+    function_violations = (
+        FunctionAnalyzer(
+            max_function_lines
+        ).analyze_project(path)
+    )
+
+    dependencies = (
+        DependencyAnalyzer()
+        .analyze_project(path)
+    )
+    db_access_violations = (
+        DBAccessAnalyzer()
+        .analyze(dependencies)
+    )
+
+    architecture_violations = (
+        ArchitectureValidator()
+        .validate(dependencies)
+    )
+
+    circular_violations = (
+        CircularDependencyAnalyzer()
+        .detect(dependencies)
+    )
+    
+
+    score = (
+        ArchitectureScoreCalculator()
+        .calculate(file_violations,function_violations,architecture_violations,circular_violations,db_access_violations
+        )
+    )
+
+    total_files = count_python_files(path)
+
+    reporter.show_summary(total_files,file_violations,function_violations,architecture_violations,circular_violations,db_access_violations,score
+    )

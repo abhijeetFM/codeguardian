@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codeguardian-cli"
+version = "1.2.6"
+description = "Architecture and code quality analyzer"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "rich",
+    "typer",
+    "tree-sitter",
+    "tree-sitter-typescript",
+]
+
+[project.scripts]
+codeguardian = "CODEGUARDIAN.main:app"
+
+[tool.setuptools.packages.find]
+include = ["CODEGUARDIAN*"]
+
+[tool.setuptools.package-data]
+CODEGUARDIAN = [
+    "config/default_config.json"
+]
