@@ -164,31 +164,206 @@ class DependencyAnalyzer:
                     module_name.split(".")[:-1]
                 )
 
-                imported_module = (
+
+                if current_directory:
+                
+
+                  imported_module = (
                     current_directory
                     + "."
                     + imported_module[2:]
                 )
+                  
+                else:
+                    imported_module = imported_module[2:]
 
                 imported_module = imported_module.replace(
                     "/",
                     "."
                 )
 
-            dependencies.append(
+
+            resolved_modules = self.resolve_barrel_import(
+               imported_module,
+               module_name,
+               project_root
+            )
+
+            for resolved_module in resolved_modules:
+
+              dependencies.append(
 
                 Dependency(
-                    module_name,
-                    imported_module
-                )
-            )
+                module_name,
+                resolved_module
+              )
+              )   
+
+            
 
         walk(
             tree.root_node,
             visit
         )
 
+       
+        
+
         return dependencies
+    
+    
+
+    def resolve_barrel_import(
+      self,
+      imported_module,
+      module_name,
+      project_root
+      ):
+
+
+      
+
+
+      module_path = os.path.join(
+        project_root,
+        *imported_module.split(".")
+        )
+      
+      file_ts = module_path + ".ts"
+      file_js = module_path + ".js"
+
+      index_ts = os.path.join(
+        module_path,
+        "index.ts"
+       )
+
+      index_js = os.path.join(
+        module_path,
+        "index.js"
+       )
+
+      if os.path.exists(index_ts):
+        print("module_path:", module_path)
+        print("file_ts:", file_ts)
+        print("index_ts:", index_ts)
+        barrel_file = index_ts
+
+      elif os.path.exists(index_js):
+         barrel_file = index_js
+
+      elif (
+        imported_module.endswith("index")
+         and  os.path.exists(file_ts)
+        ):  
+           barrel_file = file_ts
+
+      elif (
+        imported_module.endswith("index")
+        and os.path.exists(file_js)
+       ):
+         barrel_file = file_js
+
+      else:
+        return [imported_module]
+      
+     
+
+
+      
+
+      with open(
+        barrel_file,
+        "r",
+        encoding="utf-8"
+      ) as file:
+        source = file.read()
+
+      try:
+          tree = ASTCache.get_tree(
+          barrel_file,
+          source
+        )
+          
+          
+        
+      except Exception:
+        return [imported_module]
+
+      resolved_modules = []
+
+      def visit(node):
+        
+
+      
+
+      
+
+        if node.type != "export_statement":
+          return
+
+        source_node = node.child_by_field_name(
+        "source"
+         )
+
+        if not source_node:
+         
+          print(node.sexp())
+          return
+        
+        
+
+
+       
+
+        exported_module = (
+          source_node.text
+          .decode("utf8")
+          .replace('"', "")
+          .replace("'", "")
+    )
+
+        if exported_module.startswith("./"):
+
+          current_directory = ".".join(
+        imported_module.split(".")[:-1]
+        )
+
+          if current_directory:
+            exported_module = (
+            current_directory
+            + "."
+            + exported_module[2:]
+            )
+          else:
+            exported_module = exported_module[2:]
+
+          exported_module = exported_module.replace(
+           "/",
+           "."
+           )
+          
+        
+
+        resolved_modules.append(exported_module)
+
+      walk(
+       tree.root_node,
+        visit
+       )
+      
+
+      
+      
+
+
+      if resolved_modules:
+        return resolved_modules
+
+      return [imported_module]
+
+      
+
+    
 
     def analyze_project(
         self,
