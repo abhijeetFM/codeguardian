@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "NPM wrapper for CodeGuardian CLI",
   "bin": {
-    "cg-wrapper": "./bin/codeguardian.js"
+    "codeguardian": "./bin/codeguardian.js"
 },
   "keywords": [
     "codeguardian",
